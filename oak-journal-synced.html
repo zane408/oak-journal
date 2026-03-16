@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Oak Journal — Zane Mohammed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F9F7F4;
+    --surface: #FFFFFF;
+    --surface2: #F3F1ED;
+    --ink: #1A1916;
+    --ink2: #6B6860;
+    --ink3: #A8A49E;
+    --accent: #2D5016;
+    --accent-light: #EDF2E8;
+    --gold: #C4973A;
+    --gold-light: #FBF5E8;
+    --border: rgba(26,25,22,0.08);
+    --radius: 16px;
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'DM Sans', -apple-system, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── SETUP OVERLAY ── */
+  #setup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(249,247,244,0.97);
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .setup-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 44px;
+    max-width: 560px;
+    width: 100%;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.08);
+  }
+  .setup-logo { font-family: var(--font-display); font-size: 24px; margin-bottom: 4px; }
+  .setup-sub { font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink3); font-weight: 500; margin-bottom: 28px; }
+  .setup-title { font-family: var(--font-display); font-size: 22px; margin-bottom: 8px; line-height: 1.3; }
+  .setup-desc { font-size: 13.5px; color: var(--ink2); line-height: 1.7; margin-bottom: 24px; }
+  .setup-steps { margin-bottom: 28px; }
+  .setup-step {
+    display: flex; gap: 14px; align-items: flex-start;
+    margin-bottom: 14px; font-size: 13.5px; color: var(--ink2); line-height: 1.6;
+  }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent-light); color: var(--accent);
+    font-size: 12px; font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .setup-step a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .setup-step a:hover { text-decoration: underline; }
+  .setup-input-label { font-size: 12px; font-weight: 500; color: var(--ink2); margin-bottom: 6px; letter-spacing: 0.03em; }
+  .setup-input {
+    width: 100%; padding: 11px 14px;
+    border: 1px solid var(--border); border-radius: 10px;
+    font-family: var(--font-body); font-size: 13px;
+    background: var(--surface2); color: var(--ink);
+    outline: none; transition: border-color 0.15s, background 0.15s;
+    margin-bottom: 14px;
+  }
+  .setup-input:focus { background: var(--surface); border-color: rgba(45,80,22,0.35); }
+  .setup-btn {
+    width: 100%; padding: 12px;
+    background: var(--accent); color: white;
+    border: none; border-radius: 10px;
+    font-family: var(--font-body); font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .setup-btn:hover { background: #243f11; }
+  .setup-skip { text-align: center; margin-top: 12px; }
+  .setup-skip a { font-size: 12px; color: var(--ink3); cursor: pointer; text-decoration: none; }
+  .setup-skip a:hover { color: var(--ink2); }
+
+  /* ── LAYOUT ── */
+  .shell { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px; min-width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 32px 0;
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; bottom: 0;
+    z-index: 10;
+  }
+  .sidebar-logo { padding: 0 24px 20px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo .wordmark { font-family: var(--font-display); font-size: 20px; letter-spacing: -0.02em; }
+  .sidebar-logo .sub { font-size: 11px; color: var(--ink3); font-weight: 300; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 1px; }
+  .sidebar-date { padding: 16px 24px 0; font-size: 11px; color: var(--ink3); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* sync status */
+  .sync-status {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 24px 0;
+    font-size: 11px; color: var(--ink3);
+    font-weight: 400;
+  }
+  .sync-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ink3); flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite; }
+  .sync-dot.synced  { background: #4caf50; }
+  .sync-dot.error   { background: #e53935; }
+  .sync-dot.offline { background: var(--ink3); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  nav { padding: 10px 12px 0; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    cursor: pointer; font-size: 13.5px; font-weight: 400;
+    color: var(--ink2); transition: all 0.15s;
+    margin-bottom: 2px; border: none; background: none;
+    width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--ink); }
+  .nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+  .nav-section-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink3); padding: 16px 24px 6px;
+  }
+
+  .sidebar-footer {
+    padding: 14px 24px; border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--ink3); line-height: 1.8;
+  }
+  .sidebar-footer strong { color: var(--ink2); font-weight: 500; }
+  .sidebar-footer .settings-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-top: 8px; font-size: 11px; color: var(--ink3);
+    cursor: pointer; border: none; background: none;
+    font-family: var(--font-body); padding: 0;
+    transition: color 0.15s;
+  }
+  .sidebar-footer .settings-link:hover { color: var(--accent); }
+
+  /* ── MAIN ── */
+  .main { margin-left: 220px; flex: 1; padding: 48px 56px; max-width: calc(860px + 220px); }
+  .page { display: none; animation: fadeIn 0.25s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .page-header { margin-bottom: 36px; }
+  .page-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); margin-bottom: 8px; }
+  .page-title { font-family: var(--font-display); font-size: 34px; letter-spacing: -0.02em; line-height: 1.15; }
+  .page-title em { font-style: italic; color: var(--accent); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin-bottom: 16px; }
+  .card-title {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink3);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .card-title .dot.gold { background: var(--gold); }
+
+  textarea, input[type="text"] {
+    width: 100%; background: var(--surface2);
+    border: 1px solid transparent; border-radius: 10px;
+    padding: 12px 14px; font-family: var(--font-body);
+    font-size: 14px; color: var(--ink); line-height: 1.6;
+    resize: vertical; transition: border-color 0.15s, background 0.15s;
+    outline: none;
+  }
+  textarea:focus, input[type="text"]:focus { background: var(--surface); border-color: rgba(45,80,22,0.3); }
+  textarea::placeholder, input::placeholder { color: var(--ink3); }
+  textarea { min-height: 80px; }
+
+  .priority-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .priority-num {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--accent-light); color: var(--accent);
+    font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 6px;
+  }
+
+  .schedule-grid { display: flex; flex-direction: column; }
+  .hour-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  .hour-row:last-child { border-bottom: none; }
+  .hour-row:hover { background: var(--surface2); border-radius: 8px; }
+  .hour-label { width: 68px; min-width: 68px; font-size: 12px; font-weight: 500; color: var(--ink3); padding: 12px 12px 9px 0; letter-spacing: 0.01em; }
+  .hour-row input[type="text"] { border-radius: 0; background: transparent; border: none; border-left: 2px solid var(--border); padding: 8px 12px; font-size: 13.5px; flex: 1; }
+  .hour-row input[type="text"]:focus { background: var(--surface); border-left-color: var(--accent); border-radius: 0 8px 8px 0; }
+
+  .journal-prompt { margin-bottom: 4px; }
+  .journal-q { font-size: 13px; font-weight: 400; color: var(--ink2); margin-bottom: 6px; font-style: italic; }
+
+  .subconscious-card {
+    background: var(--ink); border-radius: var(--radius);
+    padding: 28px 32px; margin-bottom: 16px;
+    position: relative; overflow: hidden;
+  }
+  .subconscious-card::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 180px; height: 180px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(196,151,58,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .subconscious-card .card-title { color: rgba(255,255,255,0.4); }
+  .subconscious-card .card-title .dot { background: var(--gold); }
+  .subconscious-text { font-family: var(--font-display); font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.75); font-style: italic; }
+  .subconscious-text strong { color: var(--gold); font-style: normal; font-family: var(--font-body); font-size: 13px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  .vision-card { background: linear-gradient(135deg, var(--accent-light) 0%, #f0f5e9 100%); border: 1px solid rgba(45,80,22,0.12); border-radius: var(--radius); padding: 24px 28px; margin-bottom: 16px; }
+  .vision-card textarea { background: rgba(255,255,255,0.7); }
+  .vision-card textarea:focus { background: white; }
+
+  .gratitude-item { margin-bottom: 14px; }
+  .gratitude-label { font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .gratitude-row { display: flex; gap: 8px; }
+  .gratitude-row input { width: 180px; min-width: 0; }
+  .gratitude-row textarea { flex: 1; min-height: 52px; }
+
+  .daily-intention { text-align: center; padding: 32px 0 0; }
+  .daily-intention p { font-family: var(--font-display); font-size: 19px; font-style: italic; color: var(--ink2); line-height: 1.6; max-width: 560px; margin: 0 auto; }
+  .daily-intention .attr { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); margin-top: 10px; }
+
+  .btn-row { display: flex; align-items: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .btn { padding: 10px 20px; border-radius: 10px; font-family: var(--font-body); font-size: 13.5px; font-weight: 500; cursor: pointer; transition: all 0.15s; border: none; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #243f11; }
+  .btn-secondary { background: var(--surface2); color: var(--ink2); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface); color: var(--ink); }
+  .btn-ghost { background: none; color: var(--ink3); border: 1px solid var(--border); font-size: 12px; padding: 8px 14px; }
+  .btn-ghost:hover { color: var(--ink2); background: var(--surface2); }
+
+  .saved-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--accent); background: var(--accent-light); border-radius: 6px; padding: 3px 10px; opacity: 0; transition: opacity 0.3s; font-weight: 500; }
+  .saved-chip.show { opacity: 1; }
+
+  /* ── EXPORT PANEL ── */
+  #export-modal {
+    position: fixed; inset: 0;
+    background: rgba(26,25,22,0.5);
+    z-index: 50; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  #export-modal.open { display: flex; }
+  .export-box {
+    background: var(--surface); border-radius: var(--radius);
+    padding: 32px 36px; max-width: 600px; width: 100%;
+    max-height: 80vh; overflow-y: auto;
+  }
+  .export-box h3 { font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; }
+  .export-box p { font-size: 13px; color: var(--ink2); margin-bottom: 16px; }
+  #export-text {
+    width: 100%; min-height: 280px; font-size: 12px;
+    font-family: monospace; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; color: var(--ink); resize: vertical;
+    outline: none; line-height: 1.7;
+  }
+  .export-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+  /* mobile */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 24px 20px; }
+    .gratitude-row { flex-direction: column; }
+    .gratitude-row input { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── SETUP OVERLAY ── -->
+<div id="setup-overlay">
+  <div class="setup-box">
+    <div class="setup-logo">Oak</div>
+    <div class="setup-sub">Daily Journal · Zane Mohammed</div>
+    <div class="setup-title">Connect Google Sheets<br>for cross-device sync</div>
+    <div class="setup-desc">Your journal entries will save automatically to a private Google Sheet — accessible from any device, any browser, any time.</div>
+
+    <div class="setup-steps">
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <div>Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> and create a new blank spreadsheet. Name it <strong>Oak Journal</strong>.</div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <div>Inside the sheet, click <strong>Extensions → Apps Script</strong>. Delete everything in the editor and paste the script below, then click <strong>Deploy → New Deployment → Web App</strong>. Set "Who has access" to <strong>Anyone</strong>. Copy the deployment URL.</div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <div>Paste the <strong>Apps Script</strong> code (click to copy):<br>
+          <textarea id="script-preview" rows="4" style="margin-top:8px;font-size:11px;font-family:monospace;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;width:100%;resize:none;outline:none;color:var(--ink);cursor:pointer;" onclick="copyScript()" readonly>function doPost(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=JSON.parse(e.postData.contents);var s=ss.getSheetByName(d.date)||ss.insertSheet(d.date);s.clearContents();var rows=Object.entries(d.data);rows.forEach(function(r){s.appendRow(r);});return ContentService.createTextOutput('ok');}
+function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter.date;var s=ss.getSheetByName(d);if(!s)return ContentService.createTextOutput('{}');var rows=s.getDataRange().getValues();var out={};rows.forEach(function(r){if(r[0])out[r[0]]=r[1]||'';});return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);}</textarea>
+          <span style="font-size:11px;color:var(--ink3);margin-top:4px;display:block;">↑ Click to copy</span>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">4</div>
+        <div>Paste your deployment URL below and click Connect.</div>
+      </div>
+    </div>
+
+    <div class="setup-input-label">Google Apps Script Deployment URL</div>
+    <input class="setup-input" id="script-url-input" type="text" placeholder="https://script.google.com/macros/s/…/exec">
+    <button class="setup-btn" onclick="connectSheet()">Connect &amp; Open Journal</button>
+    <div class="setup-skip"><a onclick="skipSetup()">Skip for now — use offline only</a></div>
+  </div>
+</div>
+
+<!-- ── EXPORT MODAL ── -->
+<div id="export-modal">
+  <div class="export-box">
+    <h3>Export Today's Journal</h3>
+    <p>Copy this text into Notes, email, or any app — a perfect daily record.</p>
+    <textarea id="export-text" readonly></textarea>
+    <div class="export-actions">
+      <button class="btn btn-primary" onclick="copyExport()">Copy to Clipboard</button>
+      <button class="btn btn-secondary" onclick="closeExport()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHELL ── -->
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="wordmark">Oak</div>
+      <div class="sub">Daily Journal</div>
+    </div>
+    <div class="sidebar-date" id="sidebar-date"></div>
+    <div class="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">Offline</span>
+    </div>
+    <nav>
+      <div class="nav-section-label">Evening</div>
+      <button class="nav-item active" onclick="showPage('evening-plan',this)"><span class="nav-icon">🌙</span> Evening Plan</button>
+      <button class="nav-item" onclick="showPage('evening-debrief',this)"><span class="nav-icon">✦</span> Debrief</button>
+      <div class="nav-section-label">Morning</div>
+      <button class="nav-item" onclick="showPage('morning',this)"><span class="nav-icon">☀️</span> Morning Ritual</button>
+      <div class="nav-section-label">Daily</div>
+      <button class="nav-item" onclick="showPage('schedule',this)"><span class="nav-icon">⬜</span> Hour Plan</button>
+    </nav>
+    <div class="sidebar-footer">
+      <strong>Optimize for</strong><br>
+      10x · 80/20 · Growth<br>
+      Inspired Ideas · Leadership
+      <br>
+      <button class="settings-link" onclick="openSetup()">⚙ Sync settings</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- EVENING PLAN -->
+    <div class="page active" id="page-evening-plan">
+      <div class="page-header">
+        <div class="page-eyebrow">Evening Preparation</div>
+        <div class="page-title">Plan <em>tomorrow</em><br>before you sleep.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>3 Priorities for Tomorrow</div>
+        <div class="priority-row"><div class="priority-num">1</div><textarea id="p1" placeholder="Your most important priority…" rows="2"></textarea></div>
+        <div class="priority-row"><div class="priority-num">2</div><textarea id="p2" placeholder="Second priority…" rows="2"></textarea></div>
+        <div class="priority-row"><div class="priority-num">3</div><textarea id="p3" placeholder="Third priority…" rows="2"></textarea></div>
+      </div>
+      <div class="vision-card">
+        <div class="card-title"><span class="dot"></span>Vision for Tomorrow</div>
+        <textarea id="vision" placeholder="How do I want to show up tomorrow? What does a great day look like?…" rows="4"></textarea>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Carry Forward / Notes</div>
+        <textarea id="carryforward" placeholder="Loose ends, follow-ups, ideas to pick up tomorrow…" rows="3"></textarea>
+      </div>
+      <div class="subconscious-card">
+        <div class="card-title"><span class="dot gold"></span>Before Bed · Subconscious Programming</div>
+        <div class="subconscious-text">
+          <strong>Optimize for →</strong><br>
+          10x thinking. 80/20 growth opportunities. Inspired ideas.<br>
+          The next SCC, Davidson, Trotman.<br>
+          Brand vision. Influential, positive leadership.<br>
+          Wake up sharp &amp; refreshed — energy and confidence.<br>
+          A lifestyle and people I love. Transformational relationships.
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveAll('evening-plan')">Save</button>
+        <button class="btn btn-ghost" onclick="openExport()">Export Today</button>
+        <span class="saved-chip" id="saved-evening-plan">✓ Saved</span>
+      </div>
+    </div>
+
+    <!-- EVENING DEBRIEF -->
+    <div class="page" id="page-evening-debrief">
+      <div class="page-header">
+        <div class="page-eyebrow">Evening Debrief</div>
+        <div class="page-title">Reflect. <em>Release.</em><br>Prepare.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>6 Evening Prompts</div>
+        <div class="journal-prompt"><div class="journal-q">1. A moment that I really appreciated today was…</div><textarea id="eq1" placeholder="What stood out — a conversation, a win, a feeling…" rows="2"></textarea></div>
+        <div style="height:12px"></div>
+        <div class="journal-prompt"><div class="journal-q">2. A situation or task I handled well today was…</div><textarea id="eq2" placeholder="Where did you show up at your best?" rows="2"></textarea></div>
+        <div style="height:12px"></div>
+        <div class="journal-prompt"><div class="journal-q">3. Something I realized or learned today was…</div><textarea id="eq3" placeholder="An insight, a shift in thinking…" rows="2"></textarea></div>
+        <div style="height:12px"></div>
+        <div class="journal-prompt"><div class="journal-q">4. I could have made today even better if I…</div><textarea id="eq4" placeholder="One honest, actionable reflection…" rows="2"></textarea></div>
+        <div style="height:12px"></div>
+        <div class="journal-prompt"><div class="journal-q">5. Something that could have helped me feel more connected to others today…</div><textarea id="eq5" placeholder="Relationships, presence, conversation…" rows="2"></textarea></div>
+        <div style="height:12px"></div>
+        <div class="journal-prompt"><div class="journal-q">6. If I was my own high performance coach, I would tell myself…</div><textarea id="eq6" placeholder="Honesty, compassion, high standards…" rows="3"></textarea></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot gold"></span>What am I optimizing for?</div>
+        <textarea id="optimizing" rows="3">10x thinking. 80/20 growth. Inspired ideas. The next SCC, Davidson, Trotman. Brand vision. Being an influential, positive leader. Waking up sharp and refreshed. Showing up with energy and confidence. A lifestyle I love. People I love and transformational relationships all around me.</textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveAll('evening-debrief')">Save</button>
+        <button class="btn btn-ghost" onclick="openExport()">Export Today</button>
+        <span class="saved-chip" id="saved-evening-debrief">✓ Saved</span>
+      </div>
+    </div>
+
+    <!-- MORNING -->
+    <div class="page" id="page-morning">
+      <div class="page-header">
+        <div class="page-eyebrow">Morning Ritual</div>
+        <div class="page-title">Gratitude <em>sharpens</em><br>the mind.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot gold"></span>3 Things I'm Grateful For — and Why</div>
+        <div class="gratitude-item">
+          <div class="gratitude-label">Gratitude 1</div>
+          <div class="gratitude-row"><input type="text" id="g1-what" placeholder="I'm grateful for…"><textarea id="g1-why" placeholder="Because…" rows="2"></textarea></div>
+        </div>
+        <div class="gratitude-item">
+          <div class="gratitude-label">Gratitude 2</div>
+          <div class="gratitude-row"><input type="text" id="g2-what" placeholder="I'm grateful for…"><textarea id="g2-why" placeholder="Because…" rows="2"></textarea></div>
+        </div>
+        <div class="gratitude-item">
+          <div class="gratitude-label">Gratitude 3</div>
+          <div class="gratitude-row"><input type="text" id="g3-what" placeholder="I'm grateful for…"><textarea id="g3-why" placeholder="Because…" rows="2"></textarea></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Today's Intentions</div>
+        <textarea id="morning-intentions" placeholder="How will I show up today? What energy am I bringing?" rows="4"></textarea>
+      </div>
+      <div class="daily-intention">
+        <p>"Evolve to strengthen our community."</p>
+        <div class="attr">Buy Rite · Core Mission</div>
+      </div>
+      <div class="btn-row" style="margin-top:28px">
+        <button class="btn btn-primary" onclick="saveAll('morning')">Save</button>
+        <button class="btn btn-ghost" onclick="openExport()">Export Today</button>
+        <span class="saved-chip" id="saved-morning">✓ Saved</span>
+      </div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div class="page" id="page-schedule">
+      <div class="page-header">
+        <div class="page-eyebrow">Hour Plan</div>
+        <div class="page-title">Own <em>every hour</em><br>of the day.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Hourly Schedule — 6am to 9pm</div>
+        <div class="schedule-grid" id="schedule-grid"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveAll('schedule')">Save Schedule</button>
+        <button class="btn btn-secondary" onclick="clearSchedule()">Clear</button>
+        <button class="btn btn-ghost" onclick="openExport()">Export Today</button>
+        <span class="saved-chip" id="saved-schedule">✓ Saved</span>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── DATE ──
+const now = new Date();
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const dateKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
+const dateLabel = DAYS[now.getDay()]+', '+MONTHS[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
+document.getElementById('sidebar-date').textContent = DAYS[now.getDay()]+', '+MONTHS[now.getMonth()]+' '+now.getDate();
+
+// ── FIELDS ──
+const HOURS = [];
+for(let h=6;h<=21;h++){
+  const lbl = h===12?'12 pm':h<12?h+' am':(h-12)+' pm';
+  HOURS.push({label:lbl, key:'hour_'+h});
+}
+const grid = document.getElementById('schedule-grid');
+HOURS.forEach(h=>{
+  const row=document.createElement('div'); row.className='hour-row';
+  row.innerHTML=`<div class="hour-label">${h.label}</div><input type="text" id="${h.key}" placeholder="What are you doing?" autocomplete="off">`;
+  grid.appendChild(row);
+});
+
+const FIELDS = ['p1','p2','p3','vision','carryforward','eq1','eq2','eq3','eq4','eq5','eq6','optimizing','g1-what','g1-why','g2-what','g2-why','g3-what','g3-why','morning-intentions'];
+HOURS.forEach(h=>FIELDS.push(h.key));
+
+// ── SYNC ──
+let SCRIPT_URL = localStorage.getItem('oak_script_url') || '';
+let syncTimer = null;
+
+function setSyncStatus(state, label){
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + state;
+  lbl.textContent = label;
+}
+
+async function syncToSheet(){
+  if(!SCRIPT_URL) return;
+  setSyncStatus('syncing','Saving…');
+  const data = {};
+  FIELDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) data[id]=el.value;
+  });
+  try{
+    await fetch(SCRIPT_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({date: dateKey, data})
+    });
+    setSyncStatus('synced','Synced ✓');
+    setTimeout(()=>setSyncStatus('synced','Google Sheets'),3000);
+  } catch(e){
+    setSyncStatus('error','Sync failed');
+  }
+}
+
+async function loadFromSheet(){
+  if(!SCRIPT_URL){ loadLocal(); return; }
+  setSyncStatus('syncing','Loading…');
+  try{
+    const res = await fetch(SCRIPT_URL+'?date='+encodeURIComponent(dateKey));
+    const data = await res.json();
+    if(data && Object.keys(data).length > 0){
+      FIELDS.forEach(id=>{
+        const el=document.getElementById(id);
+        if(el && data[id] !== undefined) el.value = data[id];
+      });
+      setSyncStatus('synced','Google Sheets');
+    } else {
+      loadLocal();
+      setSyncStatus('synced','Google Sheets');
+    }
+  } catch(e){
+    loadLocal();
+    setSyncStatus('offline','Offline');
+  }
+}
+
+function loadLocal(){
+  FIELDS.forEach(id=>{
+    const el=document.getElementById(id);
+    const saved=localStorage.getItem(dateKey+'_'+id);
+    if(el && saved !== null) el.value=saved;
+  });
+}
+
+// auto-save on input (debounced)
+document.addEventListener('input', e=>{
+  if(e.target.id && FIELDS.includes(e.target.id)){
+    localStorage.setItem(dateKey+'_'+e.target.id, e.target.value);
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(syncToSheet, 1500);
+  }
+});
+
+function saveAll(section){
+  FIELDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) localStorage.setItem(dateKey+'_'+id, el.value);
+  });
+  syncToSheet();
+  const chip = document.getElementById('saved-'+section);
+  if(chip){ chip.classList.add('show'); setTimeout(()=>chip.classList.remove('show'),2500); }
+}
+
+function clearSchedule(){
+  HOURS.forEach(h=>{ const el=document.getElementById(h.key); if(el) el.value=''; localStorage.removeItem(dateKey+'_'+h.key); });
+  syncToSheet();
+}
+
+// ── NAVIGATION ──
+function showPage(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── SETUP ──
+function connectSheet(){
+  const url = document.getElementById('script-url-input').value.trim();
+  if(!url || !url.includes('script.google.com')){
+    alert('Please paste a valid Google Apps Script deployment URL.');
+    return;
+  }
+  SCRIPT_URL = url;
+  localStorage.setItem('oak_script_url', url);
+  document.getElementById('setup-overlay').style.display='none';
+  loadFromSheet();
+}
+
+function skipSetup(){
+  document.getElementById('setup-overlay').style.display='none';
+  loadLocal();
+  setSyncStatus('offline','Offline only');
+}
+
+function openSetup(){
+  document.getElementById('script-url-input').value = SCRIPT_URL || '';
+  document.getElementById('setup-overlay').style.display='flex';
+}
+
+function copyScript(){
+  const el = document.getElementById('script-preview');
+  el.select(); document.execCommand('copy');
+  el.blur();
+  const prev = el.value; // visual feedback
+  setTimeout(()=>{ alert('Apps Script code copied! Paste it into the Apps Script editor.'); },50);
+}
+
+// ── EXPORT ──
+function buildExportText(){
+  const lines = ['OAK JOURNAL — '+dateLabel, '═══════════════════════════════════\n'];
+  const add = (label, id)=>{ const el=document.getElementById(id); if(el&&el.value.trim()) lines.push(label+'\n'+el.value.trim()+'\n'); };
+  lines.push('── EVENING PLAN ──');
+  add('Priority 1:', 'p1'); add('Priority 2:', 'p2'); add('Priority 3:', 'p3');
+  add('Vision for Tomorrow:', 'vision'); add('Carry Forward:', 'carryforward');
+  lines.push('\n── EVENING DEBRIEF ──');
+  add('1. Appreciated:', 'eq1'); add('2. Handled Well:', 'eq2'); add('3. Learned:', 'eq3');
+  add('4. Could Have Been Better:', 'eq4'); add('5. Connection:', 'eq5'); add('6. Coach Message:', 'eq6');
+  add('Optimizing For:', 'optimizing');
+  lines.push('\n── MORNING ──');
+  ['g1','g2','g3'].forEach((g,i)=>{
+    const w=document.getElementById(g+'-what'); const y=document.getElementById(g+'-why');
+    if(w&&w.value.trim()) lines.push('Gratitude '+(i+1)+': '+w.value.trim()+'\nBecause: '+(y?y.value.trim():'')+'\n');
+  });
+  add('Morning Intentions:', 'morning-intentions');
+  lines.push('\n── HOUR PLAN ──');
+  HOURS.forEach(h=>{ const el=document.getElementById(h.key); if(el&&el.value.trim()) lines.push(h.label+' → '+el.value.trim()); });
+  return lines.join('\n');
+}
+
+function openExport(){
+  document.getElementById('export-text').value = buildExportText();
+  document.getElementById('export-modal').classList.add('open');
+}
+function closeExport(){ document.getElementById('export-modal').classList.remove('open'); }
+function copyExport(){
+  const el=document.getElementById('export-text'); el.select(); document.execCommand('copy');
+  alert('Copied to clipboard!');
+}
+document.getElementById('export-modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeExport(); });
+
+// ── INIT ──
+if(SCRIPT_URL){
+  document.getElementById('setup-overlay').style.display='none';
+  loadFromSheet();
+} else {
+  // show setup on first launch
+}
+</script>
+</body>
+</html>
