@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Oak Journal â Zane Mohammed</title>
+<title>Oak Journal — Zane Mohammed</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
@@ -34,7 +35,7 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* ââ SETUP OVERLAY ââ */
+  /* ── SETUP OVERLAY ── */
   #setup-overlay {
     position: fixed; inset: 0;
     background: rgba(249,247,244,0.97);
@@ -91,7 +92,7 @@
   .setup-skip a { font-size: 12px; color: var(--ink3); cursor: pointer; text-decoration: none; }
   .setup-skip a:hover { color: var(--ink2); }
 
-  /* ââ LAYOUT ââ */
+  /* ── LAYOUT ── */
   .shell { display: flex; min-height: 100vh; }
   .sidebar {
     width: 220px; min-width: 220px;
@@ -156,7 +157,7 @@
   }
   .sidebar-footer .settings-link:hover { color: var(--accent); }
 
-  /* ââ MAIN ââ */
+  /* ── MAIN ── */
   .main { margin-left: 220px; flex: 1; padding: 48px 56px; max-width: calc(860px + 220px); }
   .page { display: none; animation: fadeIn 0.25s ease; }
   .page.active { display: block; }
@@ -250,7 +251,7 @@
   .saved-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--accent); background: var(--accent-light); border-radius: 6px; padding: 3px 10px; opacity: 0; transition: opacity 0.3s; font-weight: 500; }
   .saved-chip.show { opacity: 1; }
 
-  /* ââ EXPORT PANEL ââ */
+  /* ── EXPORT PANEL ── */
   #export-modal {
     position: fixed; inset: 0;
     background: rgba(26,25,22,0.5);
@@ -274,6 +275,33 @@
   }
   .export-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 
+  /* ── GCAL SYNC BUTTON ── */
+  .btn-gcal {
+    background: var(--gold-light); color: var(--gold);
+    border: 1px solid rgba(196,151,58,0.25);
+    font-weight: 500; display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-gcal:hover { background: #f5ecd6; border-color: rgba(196,151,58,0.4); }
+  .btn-gcal.loading { opacity: 0.7; pointer-events: none; }
+  .btn-gcal .spinner {
+    width: 14px; height: 14px; border: 2px solid rgba(196,151,58,0.3);
+    border-top-color: var(--gold); border-radius: 50%;
+    animation: spin 0.6s linear infinite; display: none;
+  }
+  .btn-gcal.loading .spinner { display: inline-block; }
+  .btn-gcal.loading .gcal-label { display: none; }
+  .btn-gcal .gcal-loading-label { display: none; }
+  .btn-gcal.loading .gcal-loading-label { display: inline; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .gcal-success {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; color: var(--accent); background: var(--accent-light);
+    border-radius: 6px; padding: 3px 10px; opacity: 0;
+    transition: opacity 0.3s; font-weight: 500;
+  }
+  .gcal-success.show { opacity: 1; }
+
   /* mobile */
   @media (max-width: 768px) {
     .sidebar { display: none; }
@@ -285,13 +313,13 @@
 </head>
 <body>
 
-<!-- ââ SETUP OVERLAY ââ -->
+<!-- ── SETUP OVERLAY ── -->
 <div id="setup-overlay">
   <div class="setup-box">
     <div class="setup-logo">Oak</div>
-    <div class="setup-sub">Daily Journal Â· Zane Mohammed</div>
+    <div class="setup-sub">Daily Journal · Zane Mohammed</div>
     <div class="setup-title">Connect Google Sheets<br>for cross-device sync</div>
-    <div class="setup-desc">Your journal entries will save automatically to a private Google Sheet â accessible from any device, any browser, any time.</div>
+    <div class="setup-desc">Your journal entries will save automatically to a private Google Sheet — accessible from any device, any browser, any time.</div>
 
     <div class="setup-steps">
       <div class="setup-step">
@@ -300,14 +328,14 @@
       </div>
       <div class="setup-step">
         <div class="step-num">2</div>
-        <div>Inside the sheet, click <strong>Extensions â Apps Script</strong>. Delete everything in the editor and paste the script below, then click <strong>Deploy â New Deployment â Web App</strong>. Set "Who has access" to <strong>Anyone</strong>. Copy the deployment URL.</div>
+        <div>Inside the sheet, click <strong>Extensions → Apps Script</strong>. Delete everything in the editor and paste the script below, then click <strong>Deploy → New Deployment → Web App</strong>. Set "Who has access" to <strong>Anyone</strong>. Copy the deployment URL.</div>
       </div>
       <div class="setup-step">
         <div class="step-num">3</div>
         <div>Paste the <strong>Apps Script</strong> code (click to copy):<br>
           <textarea id="script-preview" rows="4" style="margin-top:8px;font-size:11px;font-family:monospace;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;width:100%;resize:none;outline:none;color:var(--ink);cursor:pointer;" onclick="copyScript()" readonly>function doPost(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=JSON.parse(e.postData.contents);var s=ss.getSheetByName(d.date)||ss.insertSheet(d.date);s.clearContents();var rows=Object.entries(d.data);rows.forEach(function(r){s.appendRow(r);});return ContentService.createTextOutput('ok');}
 function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter.date;var s=ss.getSheetByName(d);if(!s)return ContentService.createTextOutput('{}');var rows=s.getDataRange().getValues();var out={};rows.forEach(function(r){if(r[0])out[r[0]]=r[1]||'';});return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);}</textarea>
-          <span style="font-size:11px;color:var(--ink3);margin-top:4px;display:block;">â Click to copy</span>
+          <span style="font-size:11px;color:var(--ink3);margin-top:4px;display:block;">↑ Click to copy</span>
         </div>
       </div>
       <div class="setup-step">
@@ -317,17 +345,17 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
     </div>
 
     <div class="setup-input-label">Google Apps Script Deployment URL</div>
-    <input class="setup-input" id="script-url-input" type="text" placeholder="https://script.google.com/macros/s/â¦/exec">
+    <input class="setup-input" id="script-url-input" type="text" placeholder="https://script.google.com/macros/s/…/exec">
     <button class="setup-btn" onclick="connectSheet()">Connect &amp; Open Journal</button>
-    <div class="setup-skip"><a onclick="skipSetup()">Skip for now â use offline only</a></div>
+    <div class="setup-skip"><a onclick="skipSetup()">Skip for now — use offline only</a></div>
   </div>
 </div>
 
-<!-- ââ EXPORT MODAL ââ -->
+<!-- ── EXPORT MODAL ── -->
 <div id="export-modal">
   <div class="export-box">
     <h3>Export Today's Journal</h3>
-    <p>Copy this text into Notes, email, or any app â a perfect daily record.</p>
+    <p>Copy this text into Notes, email, or any app — a perfect daily record.</p>
     <textarea id="export-text" readonly></textarea>
     <div class="export-actions">
       <button class="btn btn-primary" onclick="copyExport()">Copy to Clipboard</button>
@@ -336,7 +364,7 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
   </div>
 </div>
 
-<!-- ââ SHELL ââ -->
+<!-- ── SHELL ── -->
 <div class="shell">
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -350,19 +378,19 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
     </div>
     <nav>
       <div class="nav-section-label">Evening</div>
-      <button class="nav-item active" onclick="showPage('evening-plan',this)"><span class="nav-icon">ð</span> Evening Plan</button>
-      <button class="nav-item" onclick="showPage('evening-debrief',this)"><span class="nav-icon">â¦</span> Debrief</button>
+      <button class="nav-item active" onclick="showPage('evening-plan',this)"><span class="nav-icon">🌙</span> Evening Plan</button>
+      <button class="nav-item" onclick="showPage('evening-debrief',this)"><span class="nav-icon">✦</span> Debrief</button>
       <div class="nav-section-label">Morning</div>
-      <button class="nav-item" onclick="showPage('morning',this)"><span class="nav-icon">âï¸</span> Morning Ritual</button>
+      <button class="nav-item" onclick="showPage('morning',this)"><span class="nav-icon">☀️</span> Morning Ritual</button>
       <div class="nav-section-label">Daily</div>
-      <button class="nav-item" onclick="showPage('schedule',this)"><span class="nav-icon">â¬</span> Hour Plan</button>
+      <button class="nav-item" onclick="showPage('schedule',this)"><span class="nav-icon">⬇</span> Hour Plan</button>
     </nav>
     <div class="sidebar-footer">
       <strong>Optimize for</strong><br>
-      10x Â· 80/20 Â· Growth<br>
-      Inspired Ideas Â· Leadership
+      10x · 80/20 · Growth<br>
+      Inspired Ideas · Leadership
       <br>
-      <button class="settings-link" onclick="openSetup()">â Sync settings</button>
+      <button class="settings-link" onclick="openSetup()">⚙ Sync settings</button>
     </div>
   </aside>
 
@@ -376,33 +404,33 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
       </div>
       <div class="card">
         <div class="card-title"><span class="dot"></span>3 Priorities for Tomorrow</div>
-        <div class="priority-row"><div class="priority-num">1</div><textarea id="p1" placeholder="Your most important priorityâ¦" rows="2"></textarea></div>
-        <div class="priority-row"><div class="priority-num">2</div><textarea id="p2" placeholder="Second priorityâ¦" rows="2"></textarea></div>
-        <div class="priority-row"><div class="priority-num">3</div><textarea id="p3" placeholder="Third priorityâ¦" rows="2"></textarea></div>
+        <div class="priority-row"><div class="priority-num">1</div><textarea id="p1" placeholder="Your most important priority…" rows="2"></textarea></div>
+        <div class="priority-row"><div class="priority-num">2</div><textarea id="p2" placeholder="Second priority…" rows="2"></textarea></div>
+        <div class="priority-row"><div class="priority-num">3</div><textarea id="p3" placeholder="Third priority…" rows="2"></textarea></div>
       </div>
       <div class="vision-card">
         <div class="card-title"><span class="dot"></span>Vision for Tomorrow</div>
-        <textarea id="vision" placeholder="How do I want to show up tomorrow? What does a great day look like?â¦" rows="4"></textarea>
+        <textarea id="vision" placeholder="How do I want to show up tomorrow? What does a great day look like?…" rows="4"></textarea>
       </div>
       <div class="card">
         <div class="card-title"><span class="dot"></span>Carry Forward / Notes</div>
-        <textarea id="carryforward" placeholder="Loose ends, follow-ups, ideas to pick up tomorrowâ¦" rows="3"></textarea>
+        <textarea id="carryforward" placeholder="Loose ends, follow-ups, ideas to pick up tomorrow…" rows="3"></textarea>
       </div>
       <div class="subconscious-card">
-        <div class="card-title"><span class="dot gold"></span>Before Bed Â· Subconscious Programming</div>
+        <div class="card-title"><span class="dot gold"></span>Before Bed · Subconscious Programming</div>
         <div class="subconscious-text">
-          <strong>Optimize for â</strong><br>
+          <strong>Optimize for →</strong><br>
           10x thinking. 80/20 growth opportunities. Inspired ideas.<br>
           The next SCC, Davidson, Trotman.<br>
           Brand vision. Influential, positive leadership.<br>
-          Wake up sharp &amp; refreshed â energy and confidence.<br>
+          Wake up sharp &amp; refreshed — energy and confidence.<br>
           A lifestyle and people I love. Transformational relationships.
         </div>
       </div>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveAll('evening-plan')">Save</button>
         <button class="btn btn-ghost" onclick="openExport()">Export Today</button>
-        <span class="saved-chip" id="saved-evening-plan">â Saved</span>
+        <span class="saved-chip" id="saved-evening-plan">✓ Saved</span>
       </div>
     </div>
 
@@ -414,17 +442,17 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
       </div>
       <div class="card">
         <div class="card-title"><span class="dot"></span>6 Evening Prompts</div>
-        <div class="journal-prompt"><div class="journal-q">1. A moment that I really appreciated today wasâ¦</div><textarea id="eq1" placeholder="What stood out â a conversation, a win, a feelingâ¦" rows="2"></textarea></div>
+        <div class="journal-prompt"><div class="journal-q">1. A moment that I really appreciated today was…</div><textarea id="eq1" placeholder="What stood out — a conversation, a win, a feeling…" rows="2"></textarea></div>
         <div style="height:12px"></div>
-        <div class="journal-prompt"><div class="journal-q">2. A situation or task I handled well today wasâ¦</div><textarea id="eq2" placeholder="Where did you show up at your best?" rows="2"></textarea></div>
+        <div class="journal-prompt"><div class="journal-q">2. A situation or task I handled well today was…</div><textarea id="eq2" placeholder="Where did you show up at your best?" rows="2"></textarea></div>
         <div style="height:12px"></div>
-        <div class="journal-prompt"><div class="journal-q">3. Something I realized or learned today wasâ¦</div><textarea id="eq3" placeholder="An insight, a shift in thinkingâ¦" rows="2"></textarea></div>
+        <div class="journal-prompt"><div class="journal-q">3. Something I realized or learned today was…</div><textarea id="eq3" placeholder="An insight, a shift in thinking…" rows="2"></textarea></div>
         <div style="height:12px"></div>
-        <div class="journal-prompt"><div class="journal-q">4. I could have made today even better if Iâ¦</div><textarea id="eq4" placeholder="One honest, actionable reflectionâ¦" rows="2"></textarea></div>
+        <div class="journal-prompt"><div class="journal-q">4. I could have made today even better if I…</div><textarea id="eq4" placeholder="One honest, actionable reflection…" rows="2"></textarea></div>
         <div style="height:12px"></div>
-        <div class="journal-prompt"><div class="journal-q">5. Something that could have helped me feel more connected to others todayâ¦</div><textarea id="eq5" placeholder="Relationships, presence, conversationâ¦" rows="2"></textarea></div>
+        <div class="journal-prompt"><div class="journal-q">5. Something that could have helped me feel more connected to others today…</div><textarea id="eq5" placeholder="Relationships, presence, conversation…" rows="2"></textarea></div>
         <div style="height:12px"></div>
-        <div class="journal-prompt"><div class="journal-q">6. If I was my own high performance coach, I would tell myselfâ¦</div><textarea id="eq6" placeholder="Honesty, compassion, high standardsâ¦" rows="3"></textarea></div>
+        <div class="journal-prompt"><div class="journal-q">6. If I was my own high performance coach, I would tell myself…</div><textarea id="eq6" placeholder="Honesty, compassion, high standards…" rows="3"></textarea></div>
       </div>
       <div class="card">
         <div class="card-title"><span class="dot gold"></span>What am I optimizing for?</div>
@@ -433,7 +461,7 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveAll('evening-debrief')">Save</button>
         <button class="btn btn-ghost" onclick="openExport()">Export Today</button>
-        <span class="saved-chip" id="saved-evening-debrief">â Saved</span>
+        <span class="saved-chip" id="saved-evening-debrief">✓ Saved</span>
       </div>
     </div>
 
@@ -444,18 +472,18 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
         <div class="page-title">Gratitude <em>sharpens</em><br>the mind.</div>
       </div>
       <div class="card">
-        <div class="card-title"><span class="dot gold"></span>3 Things I'm Grateful For â and Why</div>
+        <div class="card-title"><span class="dot gold"></span>3 Things I'm Grateful For — and Why</div>
         <div class="gratitude-item">
           <div class="gratitude-label">Gratitude 1</div>
-          <div class="gratitude-row"><input type="text" id="g1-what" placeholder="I'm grateful forâ¦"><textarea id="g1-why" placeholder="Becauseâ¦" rows="2"></textarea></div>
+          <div class="gratitude-row"><input type="text" id="g1-what" placeholder="I'm grateful for…"><textarea id="g1-why" placeholder="Because…" rows="2"></textarea></div>
         </div>
         <div class="gratitude-item">
           <div class="gratitude-label">Gratitude 2</div>
-          <div class="gratitude-row"><input type="text" id="g2-what" placeholder="I'm grateful forâ¦"><textarea id="g2-why" placeholder="Becauseâ¦" rows="2"></textarea></div>
+          <div class="gratitude-row"><input type="text" id="g2-what" placeholder="I'm grateful for…"><textarea id="g2-why" placeholder="Because…" rows="2"></textarea></div>
         </div>
         <div class="gratitude-item">
           <div class="gratitude-label">Gratitude 3</div>
-          <div class="gratitude-row"><input type="text" id="g3-what" placeholder="I'm grateful forâ¦"><textarea id="g3-why" placeholder="Becauseâ¦" rows="2"></textarea></div>
+          <div class="gratitude-row"><input type="text" id="g3-what" placeholder="I'm grateful for…"><textarea id="g3-why" placeholder="Because…" rows="2"></textarea></div>
         </div>
       </div>
       <div class="card">
@@ -464,12 +492,12 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
       </div>
       <div class="daily-intention">
         <p>"Evolve to strengthen our community."</p>
-        <div class="attr">Buy Rite Â· Core Mission</div>
+        <div class="attr">Buy Rite · Core Mission</div>
       </div>
       <div class="btn-row" style="margin-top:28px">
         <button class="btn btn-primary" onclick="saveAll('morning')">Save</button>
         <button class="btn btn-ghost" onclick="openExport()">Export Today</button>
-        <span class="saved-chip" id="saved-morning">â Saved</span>
+        <span class="saved-chip" id="saved-morning">✓ Saved</span>
       </div>
     </div>
 
@@ -480,14 +508,20 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
         <div class="page-title">Own <em>every hour</em><br>of the day.</div>
       </div>
       <div class="card">
-        <div class="card-title"><span class="dot"></span>Hourly Schedule â 6am to 9pm</div>
+        <div class="card-title"><span class="dot"></span>Hourly Schedule — 6am to 9pm</div>
         <div class="schedule-grid" id="schedule-grid"></div>
       </div>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveAll('schedule')">Save Schedule</button>
+        <button class="btn btn-gcal" id="btn-gcal-sync" onclick="syncGoogleCalendar()">
+          <span class="spinner"></span>
+          <span class="gcal-label">📅 Sync Tomorrow</span>
+          <span class="gcal-loading-label">Fetching calendar…</span>
+        </button>
         <button class="btn btn-secondary" onclick="clearSchedule()">Clear</button>
         <button class="btn btn-ghost" onclick="openExport()">Export Today</button>
-        <span class="saved-chip" id="saved-schedule">â Saved</span>
+        <span class="saved-chip" id="saved-schedule">✓ Saved</span>
+        <span class="gcal-success" id="gcal-success">✓ Calendar synced</span>
       </div>
     </div>
 
@@ -495,7 +529,7 @@ function doGet(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var d=e.parameter
 </div>
 
 <script>
-// ââ DATE ââ
+// ── DATE ──
 const now = new Date();
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -503,7 +537,7 @@ const dateKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
 const dateLabel = DAYS[now.getDay()]+', '+MONTHS[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
 document.getElementById('sidebar-date').textContent = DAYS[now.getDay()]+', '+MONTHS[now.getMonth()]+' '+now.getDate();
 
-// ââ FIELDS ââ
+// ── FIELDS ──
 const HOURS = [];
 for(let h=6;h<=21;h++){
   const lbl = h===12?'12 pm':h<12?h+' am':(h-12)+' pm';
@@ -519,7 +553,7 @@ HOURS.forEach(h=>{
 const FIELDS = ['p1','p2','p3','vision','carryforward','eq1','eq2','eq3','eq4','eq5','eq6','optimizing','g1-what','g1-why','g2-what','g2-why','g3-what','g3-why','morning-intentions'];
 HOURS.forEach(h=>FIELDS.push(h.key));
 
-// ââ SYNC ââ
+// ── SYNC ──
 let SCRIPT_URL = localStorage.getItem('oak_script_url') || '';
 let syncTimer = null;
 
@@ -532,7 +566,7 @@ function setSyncStatus(state, label){
 
 async function syncToSheet(){
   if(!SCRIPT_URL) return;
-  setSyncStatus('syncing','Savingâ¦');
+  setSyncStatus('syncing','Saving…');
   const data = {};
   FIELDS.forEach(id=>{
     const el=document.getElementById(id);
@@ -544,7 +578,7 @@ async function syncToSheet(){
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({date: dateKey, data})
     });
-    setSyncStatus('synced','Synced â');
+    setSyncStatus('synced','Synced ✓');
     setTimeout(()=>setSyncStatus('synced','Google Sheets'),3000);
   } catch(e){
     setSyncStatus('error','Sync failed');
@@ -553,7 +587,7 @@ async function syncToSheet(){
 
 async function loadFromSheet(){
   if(!SCRIPT_URL){ loadLocal(); return; }
-  setSyncStatus('syncing','Loadingâ¦');
+  setSyncStatus('syncing','Loading…');
   try{
     const res = await fetch(SCRIPT_URL+'?date='+encodeURIComponent(dateKey));
     const data = await res.json();
@@ -605,7 +639,7 @@ function clearSchedule(){
   syncToSheet();
 }
 
-// ââ NAVIGATION ââ
+// ── NAVIGATION ──
 function showPage(id, btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -613,7 +647,7 @@ function showPage(id, btn){
   btn.classList.add('active');
 }
 
-// ââ SETUP ââ
+// ── SETUP ──
 function connectSheet(){
   const url = document.getElementById('script-url-input').value.trim();
   if(!url || !url.includes('script.google.com')){
@@ -645,25 +679,25 @@ function copyScript(){
   setTimeout(()=>{ alert('Apps Script code copied! Paste it into the Apps Script editor.'); },50);
 }
 
-// ââ EXPORT ââ
+// ── EXPORT ──
 function buildExportText(){
-  const lines = ['OAK JOURNAL â '+dateLabel, 'âââââââââââââââââââââââââââââââââââ\n'];
+  const lines = ['OAK JOURNAL — '+dateLabel, '═══════════════════════════════════\n'];
   const add = (label, id)=>{ const el=document.getElementById(id); if(el&&el.value.trim()) lines.push(label+'\n'+el.value.trim()+'\n'); };
-  lines.push('ââ EVENING PLAN ââ');
+  lines.push('── EVENING PLAN ──');
   add('Priority 1:', 'p1'); add('Priority 2:', 'p2'); add('Priority 3:', 'p3');
   add('Vision for Tomorrow:', 'vision'); add('Carry Forward:', 'carryforward');
-  lines.push('\nââ EVENING DEBRIEF ââ');
+  lines.push('\n── EVENING DEBRIEF ──');
   add('1. Appreciated:', 'eq1'); add('2. Handled Well:', 'eq2'); add('3. Learned:', 'eq3');
   add('4. Could Have Been Better:', 'eq4'); add('5. Connection:', 'eq5'); add('6. Coach Message:', 'eq6');
   add('Optimizing For:', 'optimizing');
-  lines.push('\nââ MORNING ââ');
+  lines.push('\n── MORNING ──');
   ['g1','g2','g3'].forEach((g,i)=>{
     const w=document.getElementById(g+'-what'); const y=document.getElementById(g+'-why');
     if(w&&w.value.trim()) lines.push('Gratitude '+(i+1)+': '+w.value.trim()+'\nBecause: '+(y?y.value.trim():'')+'\n');
   });
   add('Morning Intentions:', 'morning-intentions');
-  lines.push('\nââ HOUR PLAN ââ');
-  HOURS.forEach(h=>{ const el=document.getElementById(h.key); if(el&&el.value.trim()) lines.push(h.label+' â '+el.value.trim()); });
+  lines.push('\n── HOUR PLAN ──');
+  HOURS.forEach(h=>{ const el=document.getElementById(h.key); if(el&&el.value.trim()) lines.push(h.label+' → '+el.value.trim()); });
   return lines.join('\n');
 }
 
@@ -677,6 +711,123 @@ function copyExport(){
   alert('Copied to clipboard!');
 }
 document.getElementById('export-modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeExport(); });
+
+// ── GOOGLE CALENDAR SYNC ──
+const GCAL_CLIENT_ID = localStorage.getItem('oak_gcal_client_id') || '';
+const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+let gcalTokenClient = null;
+let gcalAccessToken = localStorage.getItem('oak_gcal_token') || '';
+
+function initGCalTokenClient() {
+  if (typeof google === 'undefined' || !google.accounts) return;
+  gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope: GCAL_SCOPES,
+    callback: (resp) => {
+      if (resp.error) {
+        console.error('OAuth error', resp);
+        resetGCalButton();
+        return;
+      }
+      gcalAccessToken = resp.access_token;
+      localStorage.setItem('oak_gcal_token', gcalAccessToken);
+      fetchTomorrowEvents();
+    },
+  });
+}
+
+function resetGCalButton() {
+  const btn = document.getElementById('btn-gcal-sync');
+  btn.classList.remove('loading');
+}
+
+async function syncGoogleCalendar() {
+  const btn = document.getElementById('btn-gcal-sync');
+  btn.classList.add('loading');
+
+  // If we already have a token, try using it directly
+  if (gcalAccessToken) {
+    try {
+      await fetchTomorrowEvents();
+      return;
+    } catch(e) {
+      // Token expired — clear and re-auth
+      gcalAccessToken = '';
+      localStorage.removeItem('oak_gcal_token');
+    }
+  }
+
+  // Request new token via OAuth popup
+  if (gcalTokenClient) {
+    gcalTokenClient.requestAccessToken({ prompt: '' });
+  } else if (typeof google !== 'undefined' && google.accounts) {
+    initGCalTokenClient();
+    gcalTokenClient.requestAccessToken({ prompt: 'consent' });
+  } else {
+    alert('Google Identity Services not loaded. Check your internet connection and try again.');
+    resetGCalButton();
+  }
+}
+
+async function fetchTomorrowEvents() {
+  const btn = document.getElementById('btn-gcal-sync');
+  btn.classList.add('loading');
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const timeMin = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 0, 0, 0).toISOString();
+  const timeMax = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 23, 59, 59).toISOString();
+
+  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=50`;
+
+  const res = await fetch(url, {
+    headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+  });
+
+  if (res.status === 401) {
+    gcalAccessToken = '';
+    localStorage.removeItem('oak_gcal_token');
+    resetGCalButton();
+    if (gcalTokenClient) {
+      gcalTokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+    throw new Error('Token expired');
+  }
+
+  const data = await res.json();
+  const events = data.items || [];
+
+  // Map events to hour slots (6am–9pm)
+  events.forEach(ev => {
+    if (!ev.start || !ev.start.dateTime) return; // skip all-day events
+    const start = new Date(ev.start.dateTime);
+    const hour = start.getHours();
+    if (hour >= 6 && hour <= 21) {
+      const el = document.getElementById('hour_' + hour);
+      if (el) {
+        // Append if slot already has content, otherwise set
+        if (el.value && el.value.trim()) {
+          el.value = el.value + ' | ' + ev.summary;
+        } else {
+          el.value = ev.summary || '(No title)';
+        }
+        // Save to localStorage
+        localStorage.setItem(dateKey + '_hour_' + hour, el.value);
+      }
+    }
+  });
+
+  // Show success state
+  btn.classList.remove('loading');
+  const chip = document.getElementById('gcal-success');
+  const count = events.length;
+  chip.textContent = '✓ ' + count + ' event' + (count !== 1 ? 's' : '') + ' synced';
+  chip.classList.add('show');
+  setTimeout(() => chip.classList.remove('show'), 3000);
+
+  // Auto-save to Google Sheet
+  syncToSheet();
+}
 
 // ── INIT ──
 async function pullCalendar() {
@@ -697,6 +848,20 @@ if (SCRIPT_URL) {
   document.getElementById('setup-overlay').style.display = 'none';
   loadFromSheet().then(() => pullCalendar());
 }
+
+// Init Google Calendar OAuth when GIS library loads
+window.addEventListener('load', () => {
+  if (GCAL_CLIENT_ID) {
+    const waitForGIS = setInterval(() => {
+      if (typeof google !== 'undefined' && google.accounts) {
+        clearInterval(waitForGIS);
+        initGCalTokenClient();
+      }
+    }, 200);
+    // Stop waiting after 10s
+    setTimeout(() => clearInterval(waitForGIS), 10000);
+  }
+});
 </script>
 </body>
 </html>
