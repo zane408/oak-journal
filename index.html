@@ -351,16 +351,16 @@
   .kv-src:first-child { margin-top: 0; }
   .kv-l { color: var(--ink3); } .kv-v { color: var(--ink); overflow-wrap: anywhere; }
   .mx-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
-  .mx-row { display: grid; grid-template-columns: 106px repeat(var(--n), minmax(var(--cw), var(--cmax))) 58px; justify-content: start; gap: 3px; align-items: center; margin-bottom: 3px; }
-  .mx-label { position: sticky; left: 0; z-index: 1; background: var(--surface); font-size: 12.5px; color: var(--ink2); padding-right: 6px; white-space: nowrap; overflow: hidden; box-sizing: border-box; align-self: stretch; display: flex; align-items: center; margin: -1px 0; }
-  .mx-hd { font-size: 10.5px; color: var(--ink3); text-align: center; line-height: 1.15; display: flex; flex-direction: column; }
-  .mx-hd small { font-size: 10px; } .mx-hd.today { color: var(--gold); font-weight: 500; } .mx-hd.sel { color: var(--ink); font-weight: 500; }
-  .mx-cell { height: 22px; min-width: 0; border: none; border-radius: 5px; cursor: pointer; padding: 0; background: var(--surface2); }
+  .mx-row { display: grid; grid-template-columns: 106px repeat(var(--n), minmax(var(--cw), var(--cmax))) 58px; justify-content: start; gap: 5px; align-items: center; margin-bottom: 6px; }
+  .mx-label { position: sticky; left: 0; z-index: 1; background: var(--surface); font-size: 13px; color: var(--ink2); padding-right: 6px; white-space: nowrap; overflow: hidden; box-sizing: border-box; align-self: stretch; display: flex; align-items: center; margin: -1px 0; }
+  .mx-hd { font-size: 11px; color: var(--ink3); text-align: center; line-height: 1.2; display: flex; flex-direction: column; }
+  .mx-hd small { font-size: 10px; } .mx-hd.today { color: var(--gold); font-weight: 500; } .mx-hd { border-radius: 8px; padding: 3px 0; } .mx-hd.sel { color: var(--ink); font-weight: 600; background: var(--surface2); }
+  .mx-cell { height: 24px; min-width: 0; border: none; border-radius: 5px; cursor: pointer; padding: 0; background: var(--surface2); }
   .mx-cell.s-on { background: var(--accent); } .mx-cell.s-near { background: var(--gold); } .mx-cell.s-off { background: var(--bad); } .mx-cell.s-none { background: var(--surface2); }
-  .mx-cell.sel { box-shadow: 0 0 0 2px var(--ink); }
+  .mx-cell.sel { box-shadow: none; }
   .mx-pct { font-size: 12px; text-align: right; line-height: 1.2; white-space: nowrap; }
   .mx-pct small { display: block; font-size: 10px; color: var(--ink3); }
-  .mx-total { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .mx-total { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--border); }
   .mx-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; color: var(--ink2); margin-top: 12px; align-items: center; }
   .mx-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; background: var(--surface2); }
   .mx-legend i.s-on { background: var(--accent); } .mx-legend i.s-near { background: var(--gold); } .mx-legend i.s-off { background: var(--bad); }
@@ -384,8 +384,8 @@
   .sr-val { font-size: 13.5px; text-align: right; }
   .sr-sub { grid-column: 2 / -1; font-size: 11px; color: var(--ink3); }
   .sec-card .macro-head { flex-direction: column; align-items: flex-start; gap: 2px; }
-  .mx-sec { position: sticky; left: 0; width: max-content; background: var(--surface); z-index: 1; font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 12px 0 5px; }
-  .mx-sec:first-of-type { margin-top: 4px; }
+  .mx-sec { position: sticky; left: 0; width: max-content; background: var(--surface); z-index: 1; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin: 30px 0 12px; }
+  .mx-sec:first-of-type { margin-top: 12px; }
   @media (max-width: 1100px) { .sec-grid { grid-template-columns: 1fr; } }
   @media (max-width: 768px) { .gl-n { font-size: 24px; } .gl-tile { padding: 10px 11px; } }
 
@@ -1260,7 +1260,7 @@ function renderMatrix(days) {
   const overall = data.map(r => { if (!r._has) return { st: 'none', val: '–' }; const s = habitScore(r); return { st: ratioStatus(s, HABITS.length), val: s + '/' + HABITS.length }; });
   const withScore = data.filter(r => r._has);
   rows += `<div class="mx-row mx-total"><span class="mx-label">Habits hit</span>${overall.map((x, i) => cell(days[i], x.st, x.val, 'Habits hit')).join('')}<span class="mx-pct"><b>${withScore.length ? fmt(avg(withScore.map(habitScore)), 1) : '–'}</b><small>avg / ${HABITS.length}</small></span></div>`;
-  return `<div class="mx-scroll"><div class="mx" style="--n:${n};--cw:${cw}px;--cmax:${cmax}px;min-width:calc(106px + ${n} * ${cw + 3}px + 58px)">${rows}</div></div>`;
+  return `<div class="mx-scroll"><div class="mx" style="--n:${n};--cw:${cw}px;--cmax:${cmax}px;min-width:calc(106px + ${n} * ${cw + 5}px + 58px)">${rows}</div></div>`;
 }
 
 function renderScorecard() {
