@@ -754,6 +754,16 @@ HOURS.forEach(h => {
   row.innerHTML = `<div class="hour-label">${h.label}</div><input type="text" id="${h.key}" placeholder="What are you doing?" autocomplete="off" aria-label="${h.label}">`;
   grid.appendChild(row);
 });
+// Shortcut: press space twice (or type >>) in an hour slot to insert the ↳ continuation marker.
+grid.addEventListener('input', e => {
+  const el = e.target; if (el.tagName !== 'INPUT') return;
+  const pos = el.selectionStart == null ? el.value.length : el.selectionStart, pre = el.value.slice(0, pos);
+  if (!(pre.endsWith('  ') || pre.endsWith('>>'))) return;
+  const base = pre.slice(0, -2).replace(/[ |]+$/, ''), ins = (base ? base + ' | ' : '') + '↳ ';
+  el.value = ins + el.value.slice(pos);
+  try { el.setSelectionRange(ins.length, ins.length); } catch (err) {}
+  el.dispatchEvent(new Event('input', { bubbles: true })); // re-save with the new text
+});
 const FIELDS = ['p1','p2','p3','vision','carryforward','eq1','eq2','eq3','eq4','eq5','eq6','optimizing','g1-what','g1-why','g2-what','g2-why','g3-what','g3-why','morning-intentions'];
 hourKeys.forEach(k => FIELDS.push(k));
 
