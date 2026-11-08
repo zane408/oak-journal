@@ -246,6 +246,9 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .gcal-msg { display: inline-flex; align-items: center; font-size: 11.5px; color: var(--accent); background: var(--accent-light); border-radius: 6px; padding: 3px 10px; opacity: 0; transition: opacity 0.3s; font-weight: 500; }
   .gcal-msg.show { opacity: 1; }
+  .tz-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 12px; font-size: 12px; color: var(--ink2); }
+  .tz-row select { width: auto; min-width: 0; max-width: 100%; font: inherit; font-size: 12px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--ink); }
+  .tz-note { font-size: 11px; color: var(--ink3); }
   .gcal-msg.error { color: var(--bad); background: var(--bad-light); }
 
   /* ── SCORECARD ── */
@@ -635,6 +638,16 @@
         <span class="saved-chip" id="saved-schedule">✓ Saved</span>
         <span class="gcal-msg" id="gcal-msg"></span>
       </div>
+      <div class="tz-row"><label for="tz-select">Calendar time zone</label>
+        <select id="tz-select" onchange="setTz(this.value)">
+          <option value="-420">Vancouver · UTC−7 (current)</option>
+          <option value="auto">This device (automatic)</option>
+          <option value="-480">Pacific standard · UTC−8</option>
+          <option value="-360">Central · UTC−6</option>
+          <option value="-300">Eastern · UTC−5</option>
+        </select>
+        <span class="tz-note">Only used when syncing calendar times. Re-tap Sync Tomorrow after changing.</span>
+      </div>
     </div>
 
     <!-- SCORECARD -->
@@ -875,8 +888,10 @@ function showGcalMsg(text, isError) {
 }
 // Wall-clock time is computed from a fixed UTC offset, not the device's time-zone database, so a device with
 // older zone rules can't shift calendar events by an hour. Default: UTC−7 (Metro Vancouver, permanent from Nov 2026).
-const TZ_MIN = (() => { try { const v = parseInt(localStorage.getItem('oak_tz_min'), 10); return isNaN(v) ? -420 : v; } catch (e) { return -420; } })();
-const wall = d => { const x = new Date(d.getTime() + TZ_MIN * 60000); return { day: x.getUTCDate(), h: x.getUTCHours(), m: x.getUTCMinutes() }; };
+let TZ_SET = (() => { try { const v = localStorage.getItem('oak_tz_min'); return v === 'auto' ? 'auto' : (isNaN(parseInt(v, 10)) ? '-420' : String(parseInt(v, 10))); } catch (e) { return '-420'; } })();
+{ const sel = document.getElementById('tz-select'); if (sel) sel.value = TZ_SET; }
+function setTz(v) { TZ_SET = v; try { localStorage.setItem('oak_tz_min', v); } catch (e) {} }
+const wall = d => { const off = TZ_SET === 'auto' ? -d.getTimezoneOffset() : parseInt(TZ_SET, 10); const x = new Date(d.getTime() + off * 60000); return { day: x.getUTCDate(), h: x.getUTCHours(), m: x.getUTCMinutes() }; };
 function fmtClock(d) { const w = wall(d), h = w.h, m = w.m; return (h % 12 || 12) + ':' + pad(m) + (h < 12 ? ' am' : ' pm'); }
 function fmtRange(s, e) {
   const sa = fmtClock(s), ea = fmtClock(e);
