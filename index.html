@@ -343,8 +343,8 @@
   .kv-src:first-child { margin-top: 0; }
   .kv-l { color: var(--ink3); } .kv-v { color: var(--ink); overflow-wrap: anywhere; }
   .mx-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
-  .mx-row { display: grid; grid-template-columns: 88px repeat(var(--n), minmax(var(--cw), var(--cmax))) 58px; justify-content: start; gap: 3px; align-items: center; margin-bottom: 3px; }
-  .mx-label { position: sticky; left: 0; z-index: 1; background: var(--surface); font-size: 12.5px; color: var(--ink2); padding-right: 6px; white-space: nowrap; }
+  .mx-row { display: grid; grid-template-columns: 106px repeat(var(--n), minmax(var(--cw), var(--cmax))) 58px; justify-content: start; gap: 3px; align-items: center; margin-bottom: 3px; }
+  .mx-label { position: sticky; left: 0; z-index: 1; background: var(--surface); font-size: 12.5px; color: var(--ink2); padding-right: 6px; white-space: nowrap; overflow: hidden; box-sizing: border-box; align-self: stretch; display: flex; align-items: center; margin: -1px 0; }
   .mx-hd { font-size: 10.5px; color: var(--ink3); text-align: center; line-height: 1.15; display: flex; flex-direction: column; }
   .mx-hd small { font-size: 10px; } .mx-hd.today { color: var(--gold); font-weight: 500; } .mx-hd.sel { color: var(--ink); font-weight: 500; }
   .mx-cell { height: 22px; min-width: 0; border: none; border-radius: 5px; cursor: pointer; padding: 0; background: var(--surface2); }
@@ -356,6 +356,30 @@
   .mx-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; color: var(--ink2); margin-top: 12px; align-items: center; }
   .mx-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; background: var(--surface2); }
   .mx-legend i.s-on { background: var(--accent); } .mx-legend i.s-near { background: var(--gold); } .mx-legend i.s-off { background: var(--bad); }
+
+  /* ── v3: three-section dashboard ── */
+  .sc-hero { grid-template-columns: 1fr 1.4fr; }
+  .glance { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .gl-tile { border: 1px solid var(--border); border-left-width: 4px; border-radius: 12px; padding: 12px 14px; background: var(--surface); }
+  .gl-tile.s-on { border-left-color: var(--accent); } .gl-tile.s-near { border-left-color: var(--gold); } .gl-tile.s-off { border-left-color: var(--bad); } .gl-tile.s-none { border-left-color: var(--border); }
+  .gl-n { font-family: var(--font-display); font-size: 28px; line-height: 1.1; }
+  .gl-n small { font-family: var(--font-body); font-size: 13px; color: var(--ink3); }
+  .gl-t { font-size: 12.5px; font-weight: 500; margin-top: 3px; line-height: 1.25; }
+  .gl-s { font-size: 11.5px; color: var(--ink3); margin-top: 1px; }
+  .sec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; align-items: start; }
+  .sec-grid .card { margin-bottom: 0; }
+  .sec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+  .sec-title { font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink2); }
+  .sec-row { display: grid; grid-template-columns: 10px 1fr auto; column-gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .sec-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .sr-name { font-size: 13px; font-weight: 500; }
+  .sr-val { font-size: 13.5px; text-align: right; }
+  .sr-sub { grid-column: 2 / -1; font-size: 11px; color: var(--ink3); }
+  .sec-card .macro-head { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .mx-sec { position: sticky; left: 0; width: max-content; background: var(--surface); z-index: 1; font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink3); margin: 12px 0 5px; }
+  .mx-sec:first-of-type { margin-top: 4px; }
+  @media (max-width: 1100px) { .sec-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) { .gl-n { font-size: 24px; } .gl-tile { padding: 10px 11px; } }
 
   /* mobile */
   .mobile-nav { display: none; }
@@ -619,15 +643,20 @@
       <div class="sc-hero" id="sc-hero"></div>
 
       <div class="card">
-        <div class="card-title"><span class="dot"></span>At a glance <span class="spacer"></span>
-          <button class="btn btn-ghost" id="sc-detail-btn" onclick="scToggleDetail()" aria-expanded="false" aria-controls="sc-detail">Full record ▾</button>
+        <div class="card-title"><span class="dot"></span>At a glance</div>
+        <div class="glance" id="sc-glance"></div>
+      </div>
+
+      <div class="sec-grid" id="sc-sections"></div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot gold"></span>Optional metrics &amp; full record <span class="spacer"></span>
+          <button class="btn btn-ghost" id="sc-detail-btn" onclick="scToggleDetail()" aria-expanded="false" aria-controls="sc-detail">Show ▾</button>
         </div>
-        <div class="chips" id="sc-chips"></div>
+        <div class="muted">Carbs, fat, water, time in bed and ChatGPT’s daily score are still tracked, but they stay out of your Habits hit total.</div>
         <div id="sc-detail" hidden>
-          <div class="detail-sec">Macros vs target</div>
-          <div id="sc-macros"></div>
-          <div class="detail-sec">Habits</div>
-          <div class="habit-grid" id="sc-habits"></div>
+          <div class="detail-sec">Optional metrics</div>
+          <div id="sc-opt"></div>
           <div class="detail-sec">Everything logged for this day</div>
           <div class="kv" id="sc-fields"></div>
         </div>
@@ -642,7 +671,7 @@
           </span>
         </div>
         <div id="sc-matrix"></div>
-        <div class="mx-legend"><span><i class="s-on"></i>On target</span><span><i class="s-near"></i>Slightly off</span><span><i class="s-off"></i>Needs attention</span><span><i class="s-none"></i>No data</span><span class="muted">Tap a cell to open that day</span></div>
+        <div class="mx-legend"><span><i class="s-on"></i>On target</span><span><i class="s-near"></i>Slightly off</span><span><i class="s-off"></i>Needs attention</span><span><i class="s-none"></i>No data</span><span class="muted">Tap a cell to open that day</span><button class="btn btn-ghost" id="sc-opt-btn" onclick="scToggleOpt()" style="margin-left:auto;padding:4px 10px;font-size:11.5px">Show optional metrics</button></div>
       </div>
 
       <div class="card"><div class="card-title"><span class="dot"></span>This week</div><div id="sc-week"></div></div>
@@ -668,7 +697,7 @@
 
 <script>
 // ── APPS SCRIPT TEMPLATE (generated from Code.gs at build time) ──
-const APPS_SCRIPT_TEMPLATE = "/**\n * Oak Journal backend (Google Apps Script, bound to your \"Oak Journal\" sheet).\n * Deploy: Deploy > New deployment > Web app. Execute as: Me. Who has access: Anyone.\n * Every request must carry the access key below, so a leaked URL alone reads nothing.\n *\n * Features: journal save/load (one tab per date), tomorrow's Google Calendar events,\n * and the daily Scorecard tab (manual + ChatGPT + Garmin fields merged per date).\n */\nvar KEY = '__KEY__';\n// ChatGPT's \"Daily Macros Tracking\" workbook (read-only here; Oak never writes to it).\nvar DAILY_SHEET_ID = '199hcuXdaP-mfXr3Bmvdwrjd8h0h2SY-Sf9hWw10IAXI';\nvar DAILY_LOG_TAB = 'Daily Log';\nvar DAILY_TARGETS_TAB = 'Targets';\n// Header text in the Daily Log tab (lower-cased) -> field name the app uses.\nvar DAILY_MAP = {\n  'date':'date','calories':'calories','protein (g)':'protein_g','carbs (g)':'carbs_g','fat (g)':'fat_g',\n  'water (l)':'water_l','exercise':'exercise','exercise type':'exercise_type','exercise minutes':'exercise_min',\n  'daily score':'gpt_score','coaching note':'coaching_note','weight (lb)':'weight_lb','hrv (ms)':'hrv_ms',\n  'sleep (hrs)':'sleep_hrs','data confidence':'confidence'\n};\nvar SCORE_SHEET = 'Scorecard';\nvar TARGET_SHEET = 'Targets';\n// Oak's own tab: only what ChatGPT's sheet does not have (manual habits + Garmin).\nvar SCORE_COLS = ['date','fasting_hrs','hours_in_bed','planned_next_day','read_2pages','creatine','notes','steps','rem_pct','sleep_score','hrv_status'];\nvar NUM_COLS = {fasting_hrs:1,hours_in_bed:1,steps:1,rem_pct:1,sleep_score:1};\nvar DEFAULT_TARGETS = [\n  ['steps',10000],['fasting_hrs',16],['hours_in_bed',7.5],['rem_pct_min',20],['macro_score_min',8],\n  ['exercise_days_week',5],['reading_days_week',5]\n];\n\nfunction json_(o) {\n  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction norm_(v) {\n  if (Object.prototype.toString.call(v) === '[object Date]') {\n    return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');\n  }\n  return String(v);\n}\n\nfunction doPost(e) {\n  var d;\n  try { d = JSON.parse(e.postData.contents); } catch (err) { return json_({error: 'bad request'}); }\n  if (!d || d.key !== KEY) return json_({error: 'unauthorized'});\n  var lock = LockService.getScriptLock();\n  lock.waitLock(20000);\n  try {\n    if (d.action === 'score') return json_(upsertScore_(d.date, d.fields || {}));\n    return json_(saveJournal_(d.date, d.data || {}));\n  } catch (err) {\n    return json_({error: String(err)});\n  } finally {\n    lock.releaseLock();\n  }\n}\n\nfunction doGet(e) {\n  var p = (e && e.parameter) || {};\n  if (p.key !== KEY) return json_({error: 'unauthorized'});\n  try {\n    if (p.action === 'calendar') return json_(readCalendar_(p.day));\n    if (p.action === 'scores') return json_(scoresPayload_(p.from, p.to));\n    return json_(readJournal_(p.date));\n  } catch (err) {\n    return json_({error: String(err)});\n  }\n}\n\n/* ---------- Journal (one tab per date, key/value rows) ---------- */\nfunction saveJournal_(date, data) {\n  if (!/^\\d{4}-\\d{1,2}-\\d{1,2}$/.test(String(date))) throw new Error('bad date');\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var s = ss.getSheetByName(date) || ss.insertSheet(date);\n  s.clearContents();\n  var rows = Object.keys(data).map(function (k) { return [k, String(data[k])]; });\n  if (rows.length) s.getRange(1, 1, rows.length, 2).setNumberFormat('@').setValues(rows);\n  return {ok: true};\n}\n\nfunction readJournal_(date) {\n  var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(String(date));\n  if (!s || s.getLastRow() === 0) return {};\n  var out = {};\n  s.getDataRange().getValues().forEach(function (r) { if (r[0]) out[r[0]] = r[1] === '' ? '' : r[1]; });\n  return out;\n}\n\n/* ---------- Calendar ---------- */\nfunction readCalendar_(day) {\n  var m = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(String(day));\n  if (!m) throw new Error('bad day');\n  var start = new Date(+m[1], +m[2] - 1, +m[3]);\n  var end = new Date(+m[1], +m[2] - 1, +m[3] + 1);\n  var events = CalendarApp.getDefaultCalendar().getEvents(start, end)\n    .filter(function (ev) { return ev.getMyStatus() !== CalendarApp.GuestStatus.NO; })\n    .map(function (ev) {\n      return {\n        title: ev.getTitle(),\n        start: ev.getStartTime().toISOString(),\n        end: ev.getEndTime().toISOString(),\n        allDay: ev.isAllDayEvent()\n      };\n    });\n  return {events: events};\n}\n\n/* ---------- Scorecard ---------- */\nfunction ensureScoreSheet_() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var s = ss.getSheetByName(SCORE_SHEET);\n  if (!s) {\n    s = ss.insertSheet(SCORE_SHEET);\n    s.getRange(1, 1, 1, SCORE_COLS.length).setValues([SCORE_COLS]).setFontWeight('bold');\n    s.setFrozenRows(1);\n    s.getRange('A:A').setNumberFormat('@');\n  }\n  return s;\n}\n\n// Only the fields present in the request are written, so Garmin, ChatGPT and manual\n// entries for the same date never overwrite each other.\nfunction upsertScore_(date, fields) {\n  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(date))) throw new Error('bad date');\n  var s = ensureScoreSheet_();\n  var values = s.getDataRange().getValues();\n  var row = -1;\n  for (var i = 1; i < values.length; i++) {\n    if (norm_(values[i][0]) === date) { row = i + 1; break; }\n  }\n  if (row < 0) {\n    row = Math.max(s.getLastRow(), 1) + 1;\n    s.getRange(row, 1).setNumberFormat('@').setValue(date);\n  }\n  Object.keys(fields).forEach(function (col) {\n    var idx = SCORE_COLS.indexOf(col);\n    if (idx < 1) return;\n    var cell = s.getRange(row, idx + 1);\n    var v = fields[col];\n    if (NUM_COLS[col]) {\n      if (v === '' || v === null) { cell.clearContent(); return; }\n      var n = Number(v);\n      if (isNaN(n)) cell.setNumberFormat('@').setValue(String(v));\n      else cell.setNumberFormat('General').setValue(n);\n    } else {\n      cell.setNumberFormat('@').setValue(v === null || v === undefined ? '' : String(v));\n    }\n  });\n  return {ok: true, date: date};\n}\n\nfunction listScores_(from, to) {\n  var s = ensureScoreSheet_();\n  var values = s.getDataRange().getValues();\n  var rows = [];\n  for (var i = 1; i < values.length; i++) {\n    var iso = norm_(values[i][0]);\n    if (!iso) continue;\n    if (from && iso < from) continue;\n    if (to && iso > to) continue;\n    var obj = {};\n    SCORE_COLS.forEach(function (c, j) { obj[c] = values[i][j]; });\n    obj.date = iso;\n    rows.push(obj);\n  }\n  return rows;\n}\n\n// One round trip: Oak's own rows + ChatGPT's daily rows + targets (ChatGPT sheet wins for nutrition targets).\nfunction scoresPayload_(from, to) {\n  var out = {rows: listScores_(from, to), daily: [], targets: readTargets_(), dailyError: ''};\n  try {\n    out.daily = listDaily_(from, to);\n    var t = readDailyTargets_();\n    Object.keys(t).forEach(function (k) { out.targets[k] = t[k]; });\n  } catch (err) {\n    out.dailyError = String(err);\n  }\n  return out;\n}\n\nfunction dailySheet_(tab) {\n  var s = SpreadsheetApp.openById(DAILY_SHEET_ID).getSheetByName(tab);\n  if (!s) throw new Error('Tab \"' + tab + '\" not found in Daily Macros Tracking');\n  return s;\n}\n\n// Reads by header name, so ChatGPT can add columns or reorder them without breaking anything.\nfunction listDaily_(from, to) {\n  var values = dailySheet_(DAILY_LOG_TAB).getDataRange().getValues();\n  if (!values.length) return [];\n  var cols = values[0].map(function (h) { return DAILY_MAP[String(h).toLowerCase().trim()] || null; });\n  var rows = [];\n  for (var i = 1; i < values.length; i++) {\n    var obj = {};\n    cols.forEach(function (name, j) {\n      if (!name) return;\n      var v = values[i][j];\n      obj[name] = name === 'date' ? (v === '' ? '' : norm_(v)) : v;\n    });\n    if (!obj.date || !/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)) continue;\n    if (from && obj.date < from) continue;\n    if (to && obj.date > to) continue;\n    rows.push(obj);\n  }\n  return rows;\n}\n\nfunction readDailyTargets_() {\n  var map = {calories: 'calories', protein: 'protein', carbohydrates: 'carbs', fat: 'fat', water: 'water'};\n  var out = {};\n  dailySheet_(DAILY_TARGETS_TAB).getDataRange().getValues().forEach(function (r) {\n    var k = String(r[0]).toLowerCase().trim();\n    if (map[k] && r[1] !== '' && r[2] !== '' && !isNaN(Number(r[1])) && !isNaN(Number(r[2]))) {\n      out[map[k] + '_min'] = Number(r[1]);\n      out[map[k] + '_max'] = Number(r[2]);\n    }\n    if (k === 'strength training' && r[1] !== '' && !isNaN(Number(r[1]))) out.strength_per_week = Number(r[1]);\n  });\n  return out;\n}\n\nfunction readTargets_() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var s = ss.getSheetByName(TARGET_SHEET);\n  if (!s) {\n    s = ss.insertSheet(TARGET_SHEET);\n    s.getRange(1, 1, 1, 2).setValues([['key', 'value']]).setFontWeight('bold');\n    s.getRange(2, 1, DEFAULT_TARGETS.length, 2).setValues(DEFAULT_TARGETS);\n  }\n  var out = {};\n  s.getDataRange().getValues().slice(1).forEach(function (r) { if (r[0] !== '') out[r[0]] = r[1]; });\n  return out;\n}\n";
+const APPS_SCRIPT_TEMPLATE = "/**\n * Oak Journal backend (Google Apps Script, bound to your \"Oak Journal\" sheet).\n * Deploy: Deploy > New deployment > Web app. Execute as: Me. Who has access: Anyone.\n * Every request must carry the access key below, so a leaked URL alone reads nothing.\n *\n * Features: journal save/load (one tab per date), tomorrow's Google Calendar events,\n * and the daily Scorecard tab (manual + ChatGPT + Garmin fields merged per date).\n */\nvar KEY = '__KEY__';\n// ChatGPT's \"Daily Macros Tracking\" workbook (read-only here; Oak never writes to it).\nvar DAILY_SHEET_ID = '199hcuXdaP-mfXr3Bmvdwrjd8h0h2SY-Sf9hWw10IAXI';\nvar DAILY_LOG_TAB = 'Daily Log';\nvar DAILY_TARGETS_TAB = 'Targets';\n// Header text in the Daily Log tab (lower-cased) -> field name the app uses.\nvar DAILY_MAP = {\n  'date':'date','calories':'calories','protein (g)':'protein_g','carbs (g)':'carbs_g','fat (g)':'fat_g',\n  'water (l)':'water_l','exercise':'exercise','exercise type':'exercise_type','exercise minutes':'exercise_min',\n  'daily score':'gpt_score','coaching note':'coaching_note','weight (lb)':'weight_lb','hrv (ms)':'hrv_ms',\n  'sleep (hrs)':'sleep_hrs','data confidence':'confidence'\n};\nvar SCORE_SHEET = 'Scorecard';\nvar TARGET_SHEET = 'Targets';\n// Oak's own tab: only what ChatGPT's sheet does not have (manual habits + Garmin).\nvar SCORE_COLS = ['date','fasting_hrs','hours_in_bed','planned_next_day','read_2pages','creatine','notes','steps','rem_pct','sleep_score','hrv_status','rem_min'];\nvar NUM_COLS = {fasting_hrs:1,hours_in_bed:1,steps:1,rem_pct:1,sleep_score:1,rem_min:1};\nvar DEFAULT_TARGETS = [\n  ['steps',10000],['fasting_hrs',16],['hours_in_bed',7.5],['rem_pct_min',20],['macro_score_min',8],\n  ['exercise_days_week',5],['reading_days_week',5]\n];\n\nfunction json_(o) {\n  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction norm_(v) {\n  if (Object.prototype.toString.call(v) === '[object Date]') {\n    return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');\n  }\n  return String(v);\n}\n\nfunction doPost(e) {\n  var d;\n  try { d = JSON.parse(e.postData.contents); } catch (err) { return json_({error: 'bad request'}); }\n  if (!d || d.key !== KEY) return json_({error: 'unauthorized'});\n  var lock = LockService.getScriptLock();\n  lock.waitLock(20000);\n  try {\n    if (d.action === 'score') return json_(upsertScore_(d.date, d.fields || {}));\n    return json_(saveJournal_(d.date, d.data || {}));\n  } catch (err) {\n    return json_({error: String(err)});\n  } finally {\n    lock.releaseLock();\n  }\n}\n\nfunction doGet(e) {\n  var p = (e && e.parameter) || {};\n  if (p.key !== KEY) return json_({error: 'unauthorized'});\n  try {\n    if (p.action === 'calendar') return json_(readCalendar_(p.day));\n    if (p.action === 'scores') return json_(scoresPayload_(p.from, p.to));\n    return json_(readJournal_(p.date));\n  } catch (err) {\n    return json_({error: String(err)});\n  }\n}\n\n/* ---------- Journal (one tab per date, key/value rows) ---------- */\nfunction saveJournal_(date, data) {\n  if (!/^\\d{4}-\\d{1,2}-\\d{1,2}$/.test(String(date))) throw new Error('bad date');\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var s = ss.getSheetByName(date) || ss.insertSheet(date);\n  s.clearContents();\n  var rows = Object.keys(data).map(function (k) { return [k, String(data[k])]; });\n  if (rows.length) s.getRange(1, 1, rows.length, 2).setNumberFormat('@').setValues(rows);\n  return {ok: true};\n}\n\nfunction readJournal_(date) {\n  var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(String(date));\n  if (!s || s.getLastRow() === 0) return {};\n  var out = {};\n  s.getDataRange().getValues().forEach(function (r) { if (r[0]) out[r[0]] = r[1] === '' ? '' : r[1]; });\n  return out;\n}\n\n/* ---------- Calendar ---------- */\nfunction readCalendar_(day) {\n  var m = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(String(day));\n  if (!m) throw new Error('bad day');\n  var start = new Date(+m[1], +m[2] - 1, +m[3]);\n  var end = new Date(+m[1], +m[2] - 1, +m[3] + 1);\n  var events = CalendarApp.getDefaultCalendar().getEvents(start, end)\n    .filter(function (ev) { return ev.getMyStatus() !== CalendarApp.GuestStatus.NO; })\n    .map(function (ev) {\n      return {\n        title: ev.getTitle(),\n        start: ev.getStartTime().toISOString(),\n        end: ev.getEndTime().toISOString(),\n        allDay: ev.isAllDayEvent()\n      };\n    });\n  return {events: events};\n}\n\n/* ---------- Scorecard ---------- */\nfunction ensureScoreSheet_() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var s = ss.getSheetByName(SCORE_SHEET);\n  if (!s) {\n    s = ss.insertSheet(SCORE_SHEET);\n    s.getRange(1, 1, 1, SCORE_COLS.length).setValues([SCORE_COLS]).setFontWeight('bold');\n    s.setFrozenRows(1);\n    s.getRange('A:A').setNumberFormat('@');\n  }\n  // Older tabs: add any newly introduced columns (e.g. rem_min) to the header row.\n  var have = s.getDataRange().getValues()[0] || [];\n  SCORE_COLS.forEach(function (c, i) {\n    if (!have[i]) s.getRange(1, i + 1).setValue(c).setFontWeight('bold');\n  });\n  return s;\n}\n\n// Only the fields present in the request are written, so Garmin, ChatGPT and manual\n// entries for the same date never overwrite each other.\nfunction upsertScore_(date, fields) {\n  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(date))) throw new Error('bad date');\n  var s = ensureScoreSheet_();\n  var values = s.getDataRange().getValues();\n  var row = -1;\n  for (var i = 1; i < values.length; i++) {\n    if (norm_(values[i][0]) === date) { row = i + 1; break; }\n  }\n  if (row < 0) {\n    row = Math.max(s.getLastRow(), 1) + 1;\n    s.getRange(row, 1).setNumberFormat('@').setValue(date);\n  }\n  Object.keys(fields).forEach(function (col) {\n    var idx = SCORE_COLS.indexOf(col);\n    if (idx < 1) return;\n    var cell = s.getRange(row, idx + 1);\n    var v = fields[col];\n    if (NUM_COLS[col]) {\n      if (v === '' || v === null) { cell.clearContent(); return; }\n      var n = Number(v);\n      if (isNaN(n)) cell.setNumberFormat('@').setValue(String(v));\n      else cell.setNumberFormat('General').setValue(n);\n    } else {\n      cell.setNumberFormat('@').setValue(v === null || v === undefined ? '' : String(v));\n    }\n  });\n  return {ok: true, date: date};\n}\n\nfunction listScores_(from, to) {\n  var s = ensureScoreSheet_();\n  var values = s.getDataRange().getValues();\n  var rows = [];\n  for (var i = 1; i < values.length; i++) {\n    var iso = norm_(values[i][0]);\n    if (!iso) continue;\n    if (from && iso < from) continue;\n    if (to && iso > to) continue;\n    var obj = {};\n    SCORE_COLS.forEach(function (c, j) { obj[c] = values[i][j]; });\n    obj.date = iso;\n    rows.push(obj);\n  }\n  return rows;\n}\n\n// One round trip: Oak's own rows + ChatGPT's daily rows + targets (ChatGPT sheet wins for nutrition targets).\nfunction scoresPayload_(from, to) {\n  var out = {rows: listScores_(from, to), daily: [], targets: readTargets_(), dailyError: ''};\n  try {\n    out.daily = listDaily_(from, to);\n    var t = readDailyTargets_();\n    Object.keys(t).forEach(function (k) { out.targets[k] = t[k]; });\n  } catch (err) {\n    out.dailyError = String(err);\n  }\n  return out;\n}\n\nfunction dailySheet_(tab) {\n  var s = SpreadsheetApp.openById(DAILY_SHEET_ID).getSheetByName(tab);\n  if (!s) throw new Error('Tab \"' + tab + '\" not found in Daily Macros Tracking');\n  return s;\n}\n\n// Reads by header name, so ChatGPT can add columns or reorder them without breaking anything.\nfunction listDaily_(from, to) {\n  var values = dailySheet_(DAILY_LOG_TAB).getDataRange().getValues();\n  if (!values.length) return [];\n  var cols = values[0].map(function (h) { return DAILY_MAP[String(h).toLowerCase().trim()] || null; });\n  var rows = [];\n  for (var i = 1; i < values.length; i++) {\n    var obj = {};\n    cols.forEach(function (name, j) {\n      if (!name) return;\n      var v = values[i][j];\n      obj[name] = name === 'date' ? (v === '' ? '' : norm_(v)) : v;\n    });\n    if (!obj.date || !/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)) continue;\n    if (from && obj.date < from) continue;\n    if (to && obj.date > to) continue;\n    rows.push(obj);\n  }\n  return rows;\n}\n\nfunction readDailyTargets_() {\n  var map = {calories: 'calories', protein: 'protein', carbohydrates: 'carbs', fat: 'fat', water: 'water'};\n  var out = {};\n  dailySheet_(DAILY_TARGETS_TAB).getDataRange().getValues().forEach(function (r) {\n    var k = String(r[0]).toLowerCase().trim();\n    if (map[k] && r[1] !== '' && r[2] !== '' && !isNaN(Number(r[1])) && !isNaN(Number(r[2]))) {\n      out[map[k] + '_min'] = Number(r[1]);\n      out[map[k] + '_max'] = Number(r[2]);\n    }\n    if (k === 'strength training' && r[1] !== '' && !isNaN(Number(r[1]))) out.strength_per_week = Number(r[1]);\n  });\n  return out;\n}\n\nfunction readTargets_() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var s = ss.getSheetByName(TARGET_SHEET);\n  if (!s) {\n    s = ss.insertSheet(TARGET_SHEET);\n    s.getRange(1, 1, 1, 2).setValues([['key', 'value']]).setFontWeight('bold');\n    s.getRange(2, 1, DEFAULT_TARGETS.length, 2).setValues(DEFAULT_TARGETS);\n  }\n  var out = {};\n  s.getDataRange().getValues().slice(1).forEach(function (r) { if (r[0] !== '') out[r[0]] = r[1]; });\n  return out;\n}\n";
 
 // ── BASICS ──
 const $ = id => document.getElementById(id);
@@ -972,22 +1001,26 @@ $('export-modal').addEventListener('click', e => { if (e.target === e.currentTar
 // Data sources, joined by date:
 //   ChatGPT's "Daily Macros Tracking" sheet (read-only): macros, exercise, daily score, coaching note, weight
 //   Garmin (script): steps, REM %, sleep score, HRV status      Manual (this app): fasting, in bed, plan, read, creatine
-const DEFAULT_T = { calories_min: 1600, calories_max: 1700, protein_min: 120, protein_max: 140, carbs_min: 130, carbs_max: 180, fat_min: 45, fat_max: 65, water_min: 2.5, water_max: 3, steps: 10000, fasting_hrs: 16, hours_in_bed: 7.5, rem_pct_min: 20, macro_score_min: 8, exercise_days_week: 5, reading_days_week: 5, strength_per_week: 3 };
+// Goals that live in this app (the Google Sheet "Targets" tab does not override these).
+const LOCAL_GOALS = { steps: 7500, fasting_hrs: 14, sleep_score_min: 75, rem_min_min: 90, rem_min_max: 120 };
+// Calories and protein targets are read from ChatGPT's "Targets" tab so there is one source of truth.
+// To pin them here instead, add e.g. calories_min: 1600, calories_max: 1700, protein_min: 120 to LOCAL_GOALS.
+const DEFAULT_T = Object.assign({ calories_min: 1600, calories_max: 1700, protein_min: 120, protein_max: 140, carbs_min: 130, carbs_max: 180, fat_min: 45, fat_max: 65, water_min: 2.5, water_max: 3, hours_in_bed: 7.5, macro_score_min: 8, exercise_days_week: 5, reading_days_week: 5, strength_per_week: 3 }, LOCAL_GOALS);
 let T = Object.assign({}, DEFAULT_T);
-function applyTargets(t) { Object.keys(DEFAULT_T).forEach(k => { if (t[k] !== undefined && t[k] !== '' && !isNaN(+t[k])) T[k] = +t[k]; }); }
+function applyTargets(t) { Object.keys(DEFAULT_T).forEach(k => { if (k in LOCAL_GOALS) return; if (t[k] !== undefined && t[k] !== '' && !isNaN(+t[k])) T[k] = +t[k]; }); }
 
-const SC_FIELDS = ['fasting_hrs','hours_in_bed','planned_next_day','read_2pages','creatine','notes','steps','rem_pct','sleep_score','hrv_status'];
+const SC_FIELDS = ['fasting_hrs','hours_in_bed','planned_next_day','read_2pages','creatine','notes','steps','rem_pct','sleep_score','hrv_status','rem_min'];
 const LOG_GROUPS = [
   { title: 'Manual', hint: 'you log these', items: [
     { c: 'fasting_hrs', l: 'Fasting (hrs)', t: 'number', step: '0.5' },
-    { c: 'hours_in_bed', l: 'In bed (hrs)', t: 'number', step: '0.25' },
     { c: 'planned_next_day', l: 'Planned tomorrow', t: 'yn' },
     { c: 'read_2pages', l: 'Read 2+ pages', t: 'yn' },
     { c: 'creatine', l: 'Creatine', t: 'yn' },
+    { c: 'hours_in_bed', l: 'In bed (hrs, optional)', t: 'number', step: '0.25' },
     { c: 'notes', l: 'Notes', t: 'text', full: true }] },
   { title: 'From Garmin', hint: 'fills automatically when the Garmin sync runs', items: [
     { c: 'steps', l: 'Steps', t: 'number' },
-    { c: 'rem_pct', l: 'REM (%)', t: 'number', step: '0.1' },
+    { c: 'rem_min', l: 'REM (min)', t: 'number', step: '1' },
     { c: 'sleep_score', l: 'Sleep score', t: 'number' },
     { c: 'hrv_status', l: 'HRV status', t: 'hrv' }] }
 ];
@@ -1076,10 +1109,10 @@ function scSetRange(n) { trendRange = n; document.querySelectorAll('.seg-btn[dat
 function scToggleDetail(force) {
   const box = $('sc-detail'), open = force === undefined ? box.hidden : force;
   box.hidden = !open;
-  $('sc-detail-btn').textContent = open ? 'Full record ▴' : 'Full record ▾';
+  $('sc-detail-btn').textContent = open ? 'Hide ▴' : 'Show ▾';
   $('sc-detail-btn').setAttribute('aria-expanded', String(open));
 }
-function scDrill(iso) { scSetDate(iso); scToggleDetail(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function scDrill(iso) { scSetDate(iso); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
 // ── status helpers ──
 const num = v => { if (v === '' || v == null) return null; const n = parseFloat(v); return isNaN(n) ? null : n; };
@@ -1105,31 +1138,44 @@ function exerciseLogged(r) {
 const isStrength = r => /strength|weights?|lift|full.?body|workout\s*[abc]\b|\b[abc]\s*workout/i.test(exText(r));
 const isCardio = r => /run|walk|jog|cycl|bike|swim|cardio|aerobic|row|hike/i.test(exText(r));
 
-// ── one definition per metric: drives the chips, the history grid, the habit tiles and the habit score ──
+// ── one definition per metric: drives the three sections, the history grid and the Habits hit total ──
 const res = (st, val, sub) => ({ st, val, sub: sub || '' });
 const ynStatus = v => v === 'Yes' ? 'on' : v === 'No' ? 'off' : 'none';
+const SECTIONS = [
+  { id: 'mind', title: 'Mind & Recovery', ids: ['sleep', 'rem', 'hrv', 'fasting', 'read'] },
+  { id: 'nutrition', title: 'Nutrition & Leaning Out', ids: ['calories', 'protein'] },
+  { id: 'activity', title: 'Activity & Consistency', ids: ['exercise', 'steps', 'plan'] }
+];
 const METRICS = [
-  { id: 'score', label: 'Daily score', habit: true, f: r => { const v = num(r.gpt_score); return res(scoreStatus(v), v === null ? '–' : fmt(v, 1) + '/10', 'goal ' + T.macro_score_min + '+'); } },
-  { id: 'calories', label: 'Calories', f: r => { const v = num(r.calories); return res(rangeStatus(v, T.calories_min, T.calories_max), v === null ? '–' : fmt(v) + ' kcal', fmt(T.calories_min) + '–' + fmt(T.calories_max)); } },
-  { id: 'protein', label: 'Protein', f: r => { const v = num(r.protein_g); return res(minStatus(v, T.protein_min), v === null ? '–' : fmt(v) + ' g', T.protein_min + '+ g'); } },
-  { id: 'carbs', label: 'Carbs', f: r => { const v = num(r.carbs_g); return res(rangeStatus(v, T.carbs_min, T.carbs_max), v === null ? '–' : fmt(v) + ' g', T.carbs_min + '–' + T.carbs_max + ' g'); } },
-  { id: 'fat', label: 'Fat', f: r => { const v = num(r.fat_g); return res(rangeStatus(v, T.fat_min, T.fat_max), v === null ? '–' : fmt(v) + ' g', T.fat_min + '–' + T.fat_max + ' g'); } },
-  { id: 'water', label: 'Water', f: r => { const v = num(r.water_l); return res(rangeStatus(v, T.water_min, T.water_max), v === null ? '–' : fmt(v, 1) + ' L', T.water_min + '–' + T.water_max + ' L'); } },
-  { id: 'fasting', label: 'Fasting', habit: true, f: r => { const v = num(r.fasting_hrs); return res(minStatus(v, T.fasting_hrs), v === null ? '–' : fmt(v, 1) + ' h', 'goal ' + T.fasting_hrs + ' h'); } },
-  { id: 'exercise', label: 'Exercise', habit: true, f: r => {
-      const on = exerciseLogged(r);
-      return res(on ? 'on' : r._gpt ? 'off' : 'none', on ? (exText(r) || fmt(num(r.exercise_min)) + ' min') : r._gpt ? (exText(r) || 'None logged') : '–', 'walk or yoga counts'); } },
-  { id: 'steps', label: 'Steps', habit: true, f: r => { const v = num(r.steps); return res(minStatus(v, T.steps), v === null ? '–' : fmt(v), 'goal ' + T.steps.toLocaleString()); } },
-  { id: 'plan', label: 'Plan next day', habit: true, f: r => res(ynStatus(r.planned_next_day), r.planned_next_day || '–', 'yes / no') },
-  { id: 'rem', label: 'REM sleep', habit: true, f: r => { const v = num(r.rem_pct); return res(minStatus(v, T.rem_pct_min), v === null ? '–' : fmt(v, 1) + '%', 'goal ' + T.rem_pct_min + '%+'); } },
+  // Mind & Recovery
+  { id: 'sleep', label: 'Garmin sleep score', short: 'Sleep score', habit: true, f: r => { const v = num(r.sleep_score); return res(minStatus(v, T.sleep_score_min), v === null ? '–' : fmt(v), 'goal ' + T.sleep_score_min + '+'); } },
+  { id: 'rem', label: 'REM sleep', habit: true, f: r => { const v = num(r.rem_min); return res(minStatus(v, T.rem_min_min), v === null ? '–' : fmt(v) + ' min', 'goal ' + T.rem_min_min + '–' + T.rem_min_max + ' min'); } },
   { id: 'hrv', label: 'HRV', habit: true, f: r => {
       const h = String(r.hrv_status || '').toUpperCase();
       return res(!h ? 'none' : h === 'BALANCED' ? 'on' : h === 'UNBALANCED' ? 'near' : 'off', h ? h.charAt(0) + h.slice(1).toLowerCase() : '–', 'goal balanced'); } },
-  { id: 'bed', label: 'In bed', habit: true, f: r => { const v = num(r.hours_in_bed); return res(minStatus(v, T.hours_in_bed), v === null ? '–' : fmt(v, 2) + ' h', 'goal ' + T.hours_in_bed + ' h'); } },
-  { id: 'read', label: 'Read 2+ pages', habit: true, f: r => res(ynStatus(r.read_2pages), r.read_2pages || '–', 'yes / no') }
+  { id: 'fasting', label: 'Fasting', habit: true, f: r => { const v = num(r.fasting_hrs); return res(minStatus(v, T.fasting_hrs), v === null ? '–' : fmt(v, 1) + ' h', 'goal ' + T.fasting_hrs + ' h'); } },
+  { id: 'read', label: 'Read 2+ pages', habit: true, f: r => res(ynStatus(r.read_2pages), r.read_2pages || '–', 'yes / no') },
+  // Nutrition & Leaning Out
+  { id: 'calories', label: 'Calories', habit: true, f: r => { const v = num(r.calories); return res(rangeStatus(v, T.calories_min, T.calories_max), v === null ? '–' : fmt(v) + ' kcal', fmt(T.calories_min) + '–' + fmt(T.calories_max)); } },
+  { id: 'protein', label: 'Protein', habit: true, f: r => { const v = num(r.protein_g); return res(minStatus(v, T.protein_min), v === null ? '–' : fmt(v) + ' g', T.protein_min + '+ g, flag if under'); } },
+  // Activity & Consistency
+  { id: 'exercise', label: 'Exercise', habit: true, f: r => {
+      const on = exerciseLogged(r);
+      return res(on ? 'on' : r._gpt ? 'off' : 'none', on ? (exText(r) || fmt(num(r.exercise_min)) + ' min') : r._gpt ? (exText(r) || 'None logged') : '–', 'yes / no · walk or yoga counts'); } },
+  { id: 'steps', label: 'Steps', habit: true, f: r => { const v = num(r.steps); return res(minStatus(v, T.steps), v === null ? '–' : fmt(v), 'goal ' + T.steps.toLocaleString() + '+'); } },
+  { id: 'plan', label: 'Plan next day', habit: true, f: r => res(ynStatus(r.planned_next_day), r.planned_next_day || '–', 'yes / no') },
+  // Optional (tracked quietly, not part of Habits hit)
+  { id: 'score', label: 'Daily score', opt: true, f: r => { const v = num(r.gpt_score); return res(scoreStatus(v), v === null ? '–' : fmt(v, 1) + '/10', 'ChatGPT · goal ' + T.macro_score_min + '+'); } },
+  { id: 'carbs', label: 'Carbs', opt: true, f: r => { const v = num(r.carbs_g); return res(rangeStatus(v, T.carbs_min, T.carbs_max), v === null ? '–' : fmt(v) + ' g', T.carbs_min + '–' + T.carbs_max + ' g'); } },
+  { id: 'fat', label: 'Fat', opt: true, f: r => { const v = num(r.fat_g); return res(rangeStatus(v, T.fat_min, T.fat_max), v === null ? '–' : fmt(v) + ' g', T.fat_min + '–' + T.fat_max + ' g'); } },
+  { id: 'water', label: 'Water', opt: true, f: r => { const v = num(r.water_l); return res(rangeStatus(v, T.water_min, T.water_max), v === null ? '–' : fmt(v, 1) + ' L', T.water_min + '–' + T.water_max + ' L'); } },
+  { id: 'bed', label: 'In bed', opt: true, f: r => { const v = num(r.hours_in_bed); return res(minStatus(v, T.hours_in_bed), v === null ? '–' : fmt(v, 2) + ' h', 'goal ' + T.hours_in_bed + ' h'); } }
 ];
+const metricById = id => METRICS.find(m => m.id === id);
 const HABITS = METRICS.filter(m => m.habit);
+const OPT = METRICS.filter(m => m.opt);
 const habitScore = r => HABITS.filter(m => m.f(r).st === 'on').length;
+const ratioStatus = (on, n) => !n ? 'none' : on / n >= 0.8 ? 'on' : on / n >= 0.5 ? 'near' : 'off';
 
 function dayRow(iso) {
   const o = scoreRows[iso] || {}, g = gptRows[iso];
@@ -1165,6 +1211,9 @@ function barChart(items, o) {
 }
 const STOP = new Set('that this with have your from were been they them then than just more some into over also when what will would could should about after before while there their which because still today made make much like felt feel good great well keep next tomorrow target return normal'.split(' '));
 
+let showOpt = false;
+function scToggleOpt() { showOpt = !showOpt; renderScorecard(); }
+
 function renderMatrix(days) {
   const n = days.length, cw = n <= 7 ? 30 : n <= 30 ? 14 : 8, cmax = n <= 7 ? 58 : n <= 30 ? 26 : 12;
   const data = days.map(dayRow);
@@ -1180,55 +1229,68 @@ function renderMatrix(days) {
     return counted.length ? `<span class="mx-pct"><b>${Math.round(100 * on / counted.length)}%</b><small>streak ${streak}</small></span>` : '<span class="mx-pct muted">–</span>';
   };
   let rows = `<div class="mx-row mx-headrow"><span class="mx-label"></span>${head}<span class="mx-pct muted">hit rate</span></div>`;
-  METRICS.forEach(m => {
-    const out = data.map(m.f);
-    rows += `<div class="mx-row"><span class="mx-label">${m.label}</span>${out.map((x, i) => cell(days[i], x.st, x.val, m.label)).join('')}${tail(out.map(x => x.st))}</div>`;
-  });
-  const overall = data.map(r => { if (!r._has) return { st: 'none', val: '–' }; const s = habitScore(r); return { st: s >= 7 ? 'on' : s >= 5 ? 'near' : 'off', val: s + '/' + HABITS.length }; });
+  const group = (title, list) => {
+    rows += `<div class="mx-sec">${title}</div>`;
+    list.forEach(m => {
+      const out = data.map(m.f);
+      rows += `<div class="mx-row"><span class="mx-label">${m.short || m.label}</span>${out.map((x, i) => cell(days[i], x.st, x.val, m.label)).join('')}${tail(out.map(x => x.st))}</div>`;
+    });
+  };
+  SECTIONS.forEach(sec => group(sec.title, sec.ids.map(metricById)));
+  if (showOpt) group('Optional', OPT);
+  const overall = data.map(r => { if (!r._has) return { st: 'none', val: '–' }; const s = habitScore(r); return { st: ratioStatus(s, HABITS.length), val: s + '/' + HABITS.length }; });
   const withScore = data.filter(r => r._has);
   rows += `<div class="mx-row mx-total"><span class="mx-label">Habits hit</span>${overall.map((x, i) => cell(days[i], x.st, x.val, 'Habits hit')).join('')}<span class="mx-pct"><b>${withScore.length ? fmt(avg(withScore.map(habitScore)), 1) : '–'}</b><small>avg / ${HABITS.length}</small></span></div>`;
-  return `<div class="mx-scroll"><div class="mx" style="--n:${n};--cw:${cw}px;--cmax:${cmax}px;min-width:calc(88px + ${n} * ${cw + 3}px + 58px)">${rows}</div></div>`;
+  return `<div class="mx-scroll"><div class="mx" style="--n:${n};--cw:${cw}px;--cmax:${cmax}px;min-width:calc(106px + ${n} * ${cw + 3}px + 58px)">${rows}</div></div>`;
 }
 
 function renderScorecard() {
   const r = dayRow(scoreDate), latest = defaultDate();
-  // banner
   const b = $('sc-banner');
   if (dailyError) { b.textContent = 'Can’t read “Daily Macros Tracking” yet (' + dailyError + '). Share it with the Google account that owns your Oak script, then reload.'; b.style.display = 'block'; }
   else b.style.display = 'none';
   $('sc-eyebrow').textContent = 'Daily Scorecard · ' + (scoreDate === todayIso ? 'Today' : (scoreDate === latest && Object.keys(gptRows).length ? 'Latest logged day · ' : '') + fmtDay(scoreDate));
 
-  // hero
-  const gs = num(r.gpt_score), gst = scoreStatus(gs), hs = habitScore(r), circ = 2 * Math.PI * 38;
+  // hero: Habits hit is the primary score; ChatGPT's coaching note sits beside it
+  const hs = habitScore(r), nH = HABITS.length, hst = r._has ? ratioStatus(hs, nH) : 'none', circ = 2 * Math.PI * 38;
   const note = String(r.coaching_note || '').trim(), conf = String(r.confidence || '').trim();
   $('sc-hero').innerHTML = `
-    <div class="card"><div class="card-title"><span class="dot gold"></span>Daily score <span class="spacer"></span><span class="pill ${gst}">${STATUS_TEXT[gst]}</span></div>
-      <div class="score-big"><span class="num">${gs === null ? '–' : fmt(gs, 1)}</span><span class="of">/ 10 · from ChatGPT</span></div>
-      <div class="takeaway">${note ? esc(note) : '<span class="muted">' + (r._gpt ? 'No coaching note for this day.' : 'ChatGPT hasn’t logged this day yet. Rows are added once a day is complete.') + '</span>'}</div>
-      ${conf ? `<div style="margin-top:10px"><span class="tag">${esc(conf)}</span></div>` : ''}</div>
-    <div class="card"><div class="card-title"><span class="dot"></span>Habits hit</div>
-      <div class="ring-wrap"><svg class="ring" viewBox="0 0 92 92" aria-hidden="true"><circle class="track" cx="46" cy="46" r="38" fill="none" stroke-width="9"/><circle class="arc" cx="46" cy="46" r="38" fill="none" stroke-width="9" stroke-linecap="round" transform="rotate(-90 46 46)" stroke-dasharray="${(hs / HABITS.length * circ).toFixed(1)} ${circ.toFixed(1)}"/></svg>
-      <div class="ring-text"><strong>${hs} / ${HABITS.length}</strong>habits on target</div></div></div>`;
+    <div class="card"><div class="card-title"><span class="dot"></span>Habits hit <span class="spacer"></span><span class="pill ${hst}">${STATUS_TEXT[hst]}</span></div>
+      <div class="ring-wrap"><svg class="ring" viewBox="0 0 92 92" aria-hidden="true"><circle class="track" cx="46" cy="46" r="38" fill="none" stroke-width="9"/><circle class="arc" cx="46" cy="46" r="38" fill="none" stroke-width="9" stroke-linecap="round" transform="rotate(-90 46 46)" stroke-dasharray="${(hs / nH * circ).toFixed(1)} ${circ.toFixed(1)}"/></svg>
+      <div class="ring-text"><strong>${hs} / ${nH}</strong>habits on target</div></div></div>
+    <div class="card"><div class="card-title"><span class="dot gold"></span>Coaching note <span class="spacer"></span><span class="muted" style="text-transform:none;letter-spacing:0">from ChatGPT</span></div>
+      <div class="takeaway" style="margin-top:0">${note ? esc(note) : '<span class="muted">' + (r._gpt ? 'No coaching note for this day.' : 'ChatGPT hasn’t logged this day yet. Rows are added once a day is complete.') + '</span>'}</div>
+      ${conf ? `<div style="margin-top:10px"><span class="tag">${esc(conf)}</span></div>` : ''}</div>`;
 
-  // at a glance
-  $('sc-chips').innerHTML = METRICS.map(m => { const x = m.f(r); return `<button class="chip" onclick="scToggleDetail(true)" title="${STATUS_TEXT[x.st]}"><i class="cdot s-${x.st}"></i>${m.label}<b>${esc(String(x.val))}</b></button>`; }).join('');
+  // at a glance + the three sections
+  const secData = SECTIONS.map(sec => {
+    const ms = sec.ids.map(metricById), out = ms.map(m => m.f(r));
+    const on = out.filter(x => x.st === 'on').length, counted = out.filter(x => x.st !== 'none').length;
+    return { sec, ms, out, on, total: ms.length, st: ratioStatus(on, counted) };
+  });
+  $('sc-glance').innerHTML = secData.map(d => `<div class="gl-tile s-${d.st}"><div class="gl-n">${d.on}<small> / ${d.total}</small></div><div class="gl-t">${d.sec.title}</div><div class="gl-s">${STATUS_TEXT[d.st]}</div></div>`).join('');
+  $('sc-sections').innerHTML = secData.map(d => {
+    const body = d.sec.id === 'nutrition'
+      ? macroBar('Calories', ' kcal', r.calories, T.calories_min, T.calories_max) + macroBar('Protein', ' g', r.protein_g, T.protein_min, T.protein_max, 'min')
+      : d.ms.map((m, i) => { const x = d.out[i]; return `<div class="sec-row"><i class="cdot s-${x.st}" title="${STATUS_TEXT[x.st]}"></i><span class="sr-name">${m.label}</span><span class="sr-val">${esc(String(x.val))}</span><span class="sr-sub">${esc(x.sub)}</span></div>`; }).join('');
+    return `<div class="card sec-card"><div class="sec-head"><span class="sec-title">${d.sec.title}</span><span class="pill ${d.st}">${d.on} / ${d.total}</span></div>${body}</div>`;
+  }).join('');
 
-  // full record
-  $('sc-macros').innerHTML = macroBar('Calories', ' kcal', r.calories, T.calories_min, T.calories_max) +
-    macroBar('Protein', ' g', r.protein_g, T.protein_min, T.protein_max, 'min') +
-    macroBar('Carbohydrates', ' g', r.carbs_g, T.carbs_min, T.carbs_max) +
-    macroBar('Fat', ' g', r.fat_g, T.fat_min, T.fat_max) +
-    macroBar('Water', ' L', r.water_l, T.water_min, T.water_max);
-  $('sc-habits').innerHTML = HABITS.map(m => { const x = m.f(r); return `<div class="habit"><div class="h-top"><span class="h-name">${m.label}</span><span class="h-dot ${x.st}" title="${STATUS_TEXT[x.st]}"></span></div><div class="h-val">${esc(String(x.val))}</div><div class="h-sub">${x.sub}</div></div>`; }).join('');
+  // optional metrics + full record (collapsed by default)
+  const tile = m => { const x = m.f(r); return `<div class="habit"><div class="h-top"><span class="h-name">${m.label}</span><span class="h-dot ${x.st}" title="${STATUS_TEXT[x.st]}"></span></div><div class="h-val">${esc(String(x.val))}</div><div class="h-sub">${esc(x.sub)}</div></div>`; };
+  $('sc-opt').innerHTML = macroBar('Carbohydrates', ' g', r.carbs_g, T.carbs_min, T.carbs_max) + macroBar('Fat', ' g', r.fat_g, T.fat_min, T.fat_max) + macroBar('Water', ' L', r.water_l, T.water_min, T.water_max) +
+    `<div class="habit-grid" style="margin-top:16px">${tile(metricById('score'))}${tile(metricById('bed'))}</div>`;
   const kv = (src, items) => `<div class="kv-src">${src}</div>` + items.map(([l, v]) => `<div class="kv-l">${l}</div><div class="kv-v ${v === '' || v == null ? 'muted' : ''}">${v === '' || v == null ? '–' : esc(String(v))}</div>`).join('');
   $('sc-fields').innerHTML =
     kv('ChatGPT sheet', [['Daily score', r.gpt_score], ['Data confidence', r.confidence], ['Calories', r.calories], ['Protein (g)', r.protein_g], ['Carbs (g)', r.carbs_g], ['Fat (g)', r.fat_g], ['Water (L)', r.water_l], ['Exercise', r.exercise], ['Exercise type', r.exercise_type], ['Exercise minutes', r.exercise_min], ['Weight (lb)', r.weight_lb], ['HRV (ms)', r.hrv_ms], ['Sleep (hrs)', r.sleep_hrs], ['Coaching note', r.coaching_note]]) +
-    kv('Garmin', [['Steps', r.steps], ['REM (%)', r.rem_pct], ['Sleep score', r.sleep_score], ['HRV status', r.hrv_status]]) +
-    kv('Logged here', [['Fasting (hrs)', r.fasting_hrs], ['In bed (hrs)', r.hours_in_bed], ['Planned tomorrow', r.planned_next_day], ['Read 2+ pages', r.read_2pages], ['Creatine', r.creatine], ['Notes', r.notes]]);
+    kv('Garmin', [['Steps', r.steps], ['REM (min)', r.rem_min], ['REM (%, older days)', r.rem_pct], ['Sleep score', r.sleep_score], ['HRV status', r.hrv_status]]) +
+    kv('Logged here', [['Fasting (hrs)', r.fasting_hrs], ['Planned tomorrow', r.planned_next_day], ['Read 2+ pages', r.read_2pages], ['Creatine', r.creatine], ['In bed (hrs)', r.hours_in_bed], ['Notes', r.notes]]);
 
   // history grid
   const days = lastDays(scoreDate, trendRange);
   $('sc-matrix').innerHTML = renderMatrix(days);
+  { const sw = document.querySelector('#sc-matrix .mx-scroll'); if (sw) sw.scrollLeft = sw.scrollWidth; } // show the latest days first
+  $('sc-opt-btn').textContent = showOpt ? 'Hide optional metrics' : 'Show optional metrics';
   $('sc-trend-range').textContent = 'last ' + trendRange + ' days to ' + fmtDay(scoreDate);
 
   // week (Mon–Sun containing the selected date)
@@ -1246,20 +1308,23 @@ function renderScorecard() {
 
   // trends
   const rows = days.map(dayRow), lab = days.map(iso => iso.slice(5));
-  const withData = rows.filter(x => x._has).length;
+  const withData = rows.filter(x => x._has);
   const A = k => avg(rows.map(x => num(x[k])));
   const calIn = rows.filter(x => rangeStatus(x.calories, T.calories_min, T.calories_max) === 'on').length, calN = rows.filter(x => num(x.calories) !== null).length;
   const proHit = rows.filter(x => minStatus(x.protein_g, T.protein_min) === 'on').length, proN = rows.filter(x => num(x.protein_g) !== null).length;
-  const stats = [['Avg calories', fmt(A('calories')), 'kcal'], ['Avg protein', fmt(A('protein_g')), 'g'], ['Avg carbs', fmt(A('carbs_g')), 'g'], ['Avg fat', fmt(A('fat_g')), 'g'],
-    ['Avg daily score', fmt(A('gpt_score'), 1), '/ 10'], ['Strength sessions', rows.filter(isStrength).length, 'in ' + trendRange + ' days'], ['Cardio sessions', rows.filter(isCardio).length, 'in ' + trendRange + ' days'], ['Days logged', withData, 'of ' + trendRange]];
+  const slHit = rows.filter(x => minStatus(x.sleep_score, T.sleep_score_min) === 'on').length, slN = rows.filter(x => num(x.sleep_score) !== null).length;
+  const remHit = rows.filter(x => minStatus(x.rem_min, T.rem_min_min) === 'on').length, remN = rows.filter(x => num(x.rem_min) !== null).length;
+  const stats = [['Avg habits hit', withData.length ? fmt(avg(withData.map(habitScore)), 1) : '–', '/ ' + HABITS.length], ['Avg sleep score', fmt(A('sleep_score')), 'goal ' + T.sleep_score_min + '+'], ['Avg REM', fmt(A('rem_min')), 'min'], ['Avg calories', fmt(A('calories')), 'kcal'],
+    ['Avg protein', fmt(A('protein_g')), 'g'], ['Strength sessions', rows.filter(isStrength).length, 'in ' + trendRange + ' days'], ['Cardio sessions', rows.filter(isCardio).length, 'in ' + trendRange + ' days'], ['Days logged', withData.length, 'of ' + trendRange]];
   const mk = (key, fn) => rows.map((x, i) => ({ v: num(x[key]), s: fn(x[key]), label: lab[i] }));
   const words = {}; rows.slice(-14).forEach(x => { new Set((String(x.coaching_note || '').toLowerCase().match(/[a-z]{4,}/g) || []).filter(w => !STOP.has(w))).forEach(w => { words[w] = (words[w] || 0) + 1; }); });
   const recurring = Object.entries(words).filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  $('sc-trends').innerHTML = (withData < 3 ? `<div class="muted" style="margin-bottom:12px">${withData} day${withData === 1 ? '' : 's'} logged in this window. Trends sharpen as ChatGPT adds rows.</div>` : '') +
+  $('sc-trends').innerHTML = (withData.length < 3 ? `<div class="muted" style="margin-bottom:12px">${withData.length} day${withData.length === 1 ? '' : 's'} logged in this window. Trends sharpen as data comes in.</div>` : '') +
     `<div class="stat-grid">${stats.map(s => `<div class="stat"><div class="s-label">${s[0]}</div><div class="s-val">${s[1]}</div><div class="s-sub">${s[2]}</div></div>`).join('')}</div>
+    <div class="chart-block"><div class="c-head"><span>Sleep score</span><span>${slHit} of ${slN} days at ${T.sleep_score_min}+</span></div>${barChart(mk('sleep_score', v => minStatus(v, T.sleep_score_min)), { max: 100, lo: T.sleep_score_min, hi: 100, aria: 'Garmin sleep score against target' })}</div>
+    <div class="chart-block"><div class="c-head"><span>REM sleep (min)</span><span>${remHit} of ${remN} days at ${T.rem_min_min}+</span></div>${barChart(mk('rem_min', v => minStatus(v, T.rem_min_min)), { max: 160, lo: T.rem_min_min, hi: T.rem_min_max, aria: 'REM minutes against target range' })}</div>
     <div class="chart-block"><div class="c-head"><span>Calories</span><span>${calIn} of ${calN} days in range</span></div>${barChart(mk('calories', v => rangeStatus(v, T.calories_min, T.calories_max)), { max: T.calories_max * 1.4, lo: T.calories_min, hi: T.calories_max, aria: 'Daily calories against target range' })}</div>
     <div class="chart-block"><div class="c-head"><span>Protein</span><span>${proHit} of ${proN} days at target</span></div>${barChart(mk('protein_g', v => minStatus(v, T.protein_min)), { max: T.protein_max * 1.3, lo: T.protein_min, hi: T.protein_max * 1.3, aria: 'Daily protein against target' })}</div>
-    <div class="chart-block"><div class="c-head"><span>Daily score</span><span>avg ${fmt(A('gpt_score'), 1)} / 10</span></div>${barChart(mk('gpt_score', scoreStatus), { max: 10, lo: T.macro_score_min, hi: 10, aria: 'Daily score trend' })}</div>
     <div class="patterns"><strong style="font-weight:500">Recurring in coaching notes:</strong> ${recurring.length ? recurring.map(([w, c]) => `<span class="tag">${esc(w)} ×${c}</span>`).join('') : '<span class="muted">nothing repeating yet (needs a word in 3+ notes over 14 days)</span>'}</div>`;
 }
 
