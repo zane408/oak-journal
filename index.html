@@ -873,7 +873,11 @@ function showGcalMsg(text, isError) {
   el.textContent = text; el.classList.toggle('error', !!isError); el.classList.add('show');
   clearTimeout(gcalTimer); gcalTimer = setTimeout(() => el.classList.remove('show'), isError ? 7000 : 3500);
 }
-function fmtClock(d) { const h = d.getHours(), m = d.getMinutes(); return (h % 12 || 12) + ':' + pad(m) + (h < 12 ? ' am' : ' pm'); }
+// Wall-clock time is computed from a fixed UTC offset, not the device's time-zone database, so a device with
+// older zone rules can't shift calendar events by an hour. Default: UTC−7 (Metro Vancouver, permanent from Nov 2026).
+const TZ_MIN = (() => { try { const v = parseInt(localStorage.getItem('oak_tz_min'), 10); return isNaN(v) ? -420 : v; } catch (e) { return -420; } })();
+const wall = d => { const x = new Date(d.getTime() + TZ_MIN * 60000); return { day: x.getUTCDate(), h: x.getUTCHours(), m: x.getUTCMinutes() }; };
+function fmtClock(d) { const w = wall(d), h = w.h, m = w.m; return (h % 12 || 12) + ':' + pad(m) + (h < 12 ? ' am' : ' pm'); }
 function fmtRange(s, e) {
   const sa = fmtClock(s), ea = fmtClock(e);
   return sa.slice(-2) === ea.slice(-2) ? sa.slice(0, -3) + '–' + ea : sa + '–' + ea;
@@ -886,8 +890,8 @@ function applyEvents(events) {
     const s = new Date(ev.start), e = new Date(ev.end);
     if (isNaN(s) || isNaN(e)) return;
     const title = ev.title || '(No title)';
-    const startH = s.getHours();
-    const endH = e.getDate() !== s.getDate() ? 21 : new Date(Math.max(e.getTime() - 1, s.getTime())).getHours();
+    const startH = wall(s).h;
+    const endH = wall(e).day !== wall(s).day ? 21 : wall(new Date(Math.max(e.getTime() - 1, s.getTime()))).h;
     let placed = false;
     for (let h = Math.max(startH, 6); h <= Math.min(endH, 21); h++) {
       (perHour['hour_' + h] = perHour['hour_' + h] || []).push({ title, text: h === startH ? title + ' · ' + fmtRange(s, e) : '↳ ' + title });
@@ -895,10 +899,15 @@ function applyEvents(events) {
     }
     if (placed) used++;
   });
+  // Re-sync replaces earlier synced copies of these events (so corrected times overwrite old ones).
+  const titles = events.filter(ev => !ev.allDay).map(ev => ev.title || '(No title)');
+  for (let h = 6; h <= 21; h++) {
+    const el = $('hour_' + h); if (!el || !el.value) continue;
+    el.value = el.value.split(' | ').filter(part => !titles.some(t => part.includes(t) && (part.startsWith('↳ ') || /\d:\d\d (am|pm)/.test(part)))).join(' | ');
+  }
   Object.entries(perHour).forEach(([key, items]) => {
     const el = $(key);
     items.forEach(it => {
-      if (el.value.includes(it.title)) return; // already there: no duplicates on re-sync
       el.value = el.value.trim() ? el.value.trim() + ' | ' + it.text : it.text;
     });
     localStorage.setItem(tomorrowKey + '_' + key, el.value);
