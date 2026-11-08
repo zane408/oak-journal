@@ -311,19 +311,23 @@
   .chart-block .c-head { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px; }
   .chart-block .c-head span:first-child { font-weight: 500; }
   .chart-block .c-head span:last-child { color: var(--ink2); }
-  .vb { position: relative; display: flex; align-items: flex-end; gap: 6px; height: 96px; padding-top: 16px; padding-right: 44px; }
+  .vb { position: relative; display: flex; align-items: flex-end; gap: 6px; padding: 16px 44px 0 34px; }
   .vb.dense { gap: 2px; }
-  .vb .band { position: absolute; left: 0; right: 0; background: rgba(45,80,22,0.09); border-top: 1px dashed rgba(45,80,22,0.45); pointer-events: none; }
-  .vb .tag { position: absolute; right: 0; width: 42px; text-align: right; font-size: 10px; color: var(--accent); background: none; padding: 0; line-height: 1; transform: translateY(-50%); pointer-events: none; margin: 0; border-radius: 3px; }
+  .vb .gl { position: absolute; left: 34px; right: 44px; border-top: 1px solid var(--border); pointer-events: none; }
+  .vb .gl.base { border-top-color: var(--ink3); }
+  .vb .yl { position: absolute; left: 0; width: 28px; text-align: right; font-size: 10px; color: var(--ink3); transform: translateY(50%); line-height: 1; pointer-events: none; }
+  .vb .band { position: absolute; left: 34px; right: 44px; background: rgba(45,80,22,0.09); border-bottom: 1px dashed rgba(45,80,22,0.6); pointer-events: none; }
+  .vb .tag { position: absolute; right: 0; width: 42px; text-align: right; font-size: 10px; font-weight: 600; color: var(--accent); background: none; padding: 0; line-height: 1; transform: translateY(50%); pointer-events: none; margin: 0; }
   .vb-col { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; background: none; border: 0; padding: 0; cursor: pointer; font: inherit; color: inherit; position: relative; }
   .vb-bar { width: 100%; max-width: 22px; border-radius: 4px 4px 0 0; min-height: 3px; }
   .vb.dense .vb-bar { border-radius: 2px 2px 0 0; max-width: none; }
   .vb-col.on .vb-bar { background: var(--accent); } .vb-col.near .vb-bar { background: var(--gold); } .vb-col.off .vb-bar { background: var(--bad); } .vb-col.none .vb-bar { background: var(--surface2); }
-  .vb-col.sel .vb-bar { outline: 2px solid var(--ink); outline-offset: 1px; }
   .vb-n { font-size: 11px; font-weight: 600; line-height: 1; margin-bottom: 3px; color: var(--ink); white-space: nowrap; }
-  .vb-d { display: flex; gap: 6px; margin-top: 4px; padding-right: 44px; } .vb-d.dense { gap: 2px; }
-  .vb-d span { flex: 1 1 0; min-width: 0; text-align: center; font-size: 10px; color: var(--ink3); white-space: nowrap; overflow: visible; }
-  @media (max-width: 520px) { .vb-n { font-size: 10px; } .vb { gap: 4px; } .vb-d { gap: 4px; } }
+  .vb-d { display: flex; gap: 6px; margin-top: 6px; padding: 0 44px 0 34px; } .vb-d.dense { gap: 2px; }
+  .vb-d span { flex: 1 1 0; min-width: 0; text-align: center; font-size: 10px; line-height: 1.25; color: var(--ink3); white-space: nowrap; display: flex; flex-direction: column; }
+  .vb-d span b { font-weight: 600; font-size: 11px; color: var(--ink2); }
+  .vb-d span.sel b, .vb-d span.sel { color: var(--ink); font-weight: 700; }
+  @media (max-width: 520px) { .vb-n { font-size: 10px; } .vb { gap: 4px; padding-right: 40px; } .vb-d { gap: 4px; padding-right: 40px; } .vb .gl, .vb .band { right: 40px; } .vb .tag { width: 38px; } }
   .patterns { font-size: 13px; color: var(--ink2); }
   .tag { display: inline-block; background: var(--surface2); border-radius: 6px; padding: 2px 9px; margin: 2px 6px 2px 0; font-size: 12px; }
   .muted { color: var(--ink3); font-size: 12.5px; }
@@ -1208,11 +1212,18 @@ function macroBar(name, unit, v, min, max, mode) {
 }
 function barChart(items, o) {
   const n = items.length, dense = n > 14, H = 80;
-  const maxV = Math.max(o.max, ...items.map(d => d.v === null ? 0 : d.v));
-  const yp = v => Math.min(v / maxV, 1) * H;
+  const rawMax = Math.max(o.max, ...items.map(d => d.v === null ? 0 : d.v));
+  const raw = rawMax / 3, mag = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / mag;
+  const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
+  const top = Math.ceil(rawMax / step - 1e-9) * step;
+  const yp = v => Math.min(v / top, 1) * H;
+  let grid = '';
+  for (let t = 0; t <= top + 1e-9; t += step) {
+    grid += `<div class="gl ${t === 0 ? 'base' : ''}" style="bottom:${yp(t)}px"></div><span class="yl" style="bottom:${yp(t)}px">${fmt(t, 0)}</span>`;
+  }
   let band = '';
   if (o.lo != null) {
-    const hi = o.hi != null && o.hi < maxV ? o.hi : maxV;
+    const hi = o.hi != null && o.hi < top ? o.hi : top;
     band = `<div class="band" style="bottom:${yp(o.lo)}px;height:${Math.max(yp(hi) - yp(o.lo), 1)}px"></div>`;
     if (o.tag) band += `<span class="tag" style="bottom:${yp(o.lo)}px">${o.tag}</span>`;
   }
@@ -1224,9 +1235,13 @@ function barChart(items, o) {
     const showN = !dense || i === lastIdx;
     return `<button class="vb-col ${d.s}${sel}"${click} title="${d.label}: ${fmt(d.v, 1)}" aria-label="${d.label}: ${fmt(d.v, 1)}">${showN ? `<span class="vb-n">${fmt(d.v, 0)}</span>` : ''}<div class="vb-bar" style="height:${Math.max(3, yp(d.v))}px"></div></button>`;
   }).join('');
-  const days = dense ? items.map((d, i) => i === 0 || i === n - 1 || i % 7 === 0 ? d.label : '') : items.map(d => d.label.slice(3));
-  const dl = days.map(t => `<span>${t}</span>`).join('');
-  return `<div class="vb ${dense ? 'dense' : ''}" role="img" aria-label="${o.aria}" style="height:${H + 16}px">${band}${cols}</div><div class="vb-d ${dense ? 'dense' : ''}">${dl}</div>`;
+  const dl = items.map((d, i) => {
+    const [y, m, dd] = (d.iso || '2000-01-01').split('-').map(Number), dt = new Date(y, m - 1, dd);
+    const sel = d.iso && d.iso === scoreDate ? ' class="sel"' : '';
+    if (dense) return i === 0 || i === n - 1 || dt.getDay() === 1 ? `<span${sel}><b>${dd}</b>${dt.toLocaleDateString('en-US', { month: 'short' })}</span>` : '<span></span>';
+    return `<span${sel}><b>${dd}</b>${dt.toLocaleDateString('en-US', { weekday: 'short' })}</span>`;
+  }).join('');
+  return `<div class="vb ${dense ? 'dense' : ''}" role="img" aria-label="${o.aria}" style="height:${H + 16}px">${grid}${band}${cols}</div><div class="vb-d ${dense ? 'dense' : ''}">${dl}</div>`;
 }
 const STOP = new Set('that this with have your from were been they them then than just more some into over also when what will would could should about after before while there their which because still today made make much like felt feel good great well keep next tomorrow target return normal'.split(' '));
 
